@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import *
+import datetime
 
 class CinemaBookingApp(tk.Tk):
     def __init__(self):
@@ -12,8 +13,9 @@ class CinemaBookingApp(tk.Tk):
             self.grid_columnconfigure(i, weight=1)
 
         self.frames = {}
+        self.logged_in_user = "Guest"
 
-        for F in (LoginPage, MainMenuPage):
+        for F in (LoginPage, MainMenuPage, BookingPage):
             page_name = F.__name__
             frame = F(parent=self, controller=self)
             self.frames[page_name] = frame
@@ -24,7 +26,39 @@ class CinemaBookingApp(tk.Tk):
     def show_frame(self, page_name):
         frame = self.frames[page_name]
         frame.tkraise()
+        if hasattr(frame, "update_header"):
+            frame.update_header()
 
+class BasePage(tk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__(parent, bg='#add8e6')
+        self.controller = controller
+
+        self.header_frame = tk.Frame(self, bg='#add8e6')
+        self.header_frame.grid(row=0, column=0, columnspan=6, sticky='e', padx=10, pady=10)
+
+        self.user_label = tk.Label(self.header_frame, font=('Arial', 12), bg='#add8e6')
+        self.user_label.pack(side='left', padx=(0, 20))
+
+        self.time_label = tk.Label(self.header_frame, font=('Arial', 12), bg='#add8e6')
+        self.time_label.pack(side='left')
+
+        self.logout_btn = tk.Button(self.header_frame, text="Log out", font=('Arial', 12), command=self.logout)
+        self.logout_btn.pack(side='left', padx=(20, 0))
+
+        self.update_clock()
+
+    def update_clock(self):
+        now = datetime.datetime.now().strftime("%H:%M:%S")
+        self.time_label.configure(text=now)
+        self.after(1000, self.update_clock)
+
+    def update_header(self):
+        self.user_label.configure(text=f"User: {self.controller.logged_in_user}")
+
+    def logout(self):
+        self.controller.logged_in_user = "Guest"
+        self.controller.show_frame("LoginPage")
 
 class LoginPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -85,20 +119,40 @@ class LoginPage(tk.Frame):
         password = self.password_entry.get()
 
         if username != "Enter username" and password != "Enter password":
+            self.controller.logged_in_user = username
             self.controller.show_frame("MainMenuPage")
 
-
-
-class MainMenuPage(tk.Frame):
+class BookingPage(BasePage):
     def __init__(self, parent, controller):
-        super().__init__(parent, bg='#add8e6')
+        super().__init__(parent, controller)
+
+        tk.Button(
+            self,
+            text="Main Menu",
+            font=('Arial', 14),
+            command=lambda: controller.show_frame("MainMenuPage")).grid(row=2, column=2)
+
+class MainMenuPage(BasePage):
+    def __init__(self, parent, controller):
+        super().__init__(parent, controller)
+
         for i in range(5):
             self.grid_columnconfigure(i, weight=1)
+            self.grid_rowconfigure(i + 2, weight=1)
 
-        tk.Label(self, text="Main Menu", font=('Arial', 18), bg='#add8e6').grid(row=0, column=2, pady=20)
-        tk.Button(self, text="Log out", font=('Arial', 14).grid(row=5, column=5)
-                  command=lambda: controller.show_frame("LoginPage")).grid(row=1, column=2)
+        tk.Label(self, text="Main Menu", font=('Arial', 18), bg='#add8e6').grid(row=1, column=2, pady=20)
 
+        tk.Button(
+            self,
+            text="Book Tickets",
+            font=('Arial', 14),
+            command=lambda: controller.show_frame("BookingPage")).grid(row=2, column=5)
+
+        tk.Button(
+            self,
+            text="Log out",
+            font=('Arial', 14),
+            command=self.logout).grid(row=3, column=5)
 
 if __name__ == "__main__":
     app = CinemaBookingApp()
