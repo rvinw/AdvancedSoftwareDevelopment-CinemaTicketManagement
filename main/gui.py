@@ -11,11 +11,12 @@ class CinemaBookingApp(tk.Tk):
 
         for i in range(5):
             self.grid_columnconfigure(i, weight=1)
+            self.grid_rowconfigure(i + 2, weight=1)
 
         self.frames = {}
         self.logged_in_user = "Guest"
 
-        for F in (LoginPage, MainMenuPage, BookingPage):
+        for F in (LoginPage, MainMenuPage, BookingPage, CancelPage, ListingsPage):
             page_name = F.__name__
             frame = F(parent=self, controller=self)
             self.frames[page_name] = frame
@@ -33,6 +34,10 @@ class BasePage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg='#add8e6')
         self.controller = controller
+        
+        for i in range(5):
+            self.grid_columnconfigure(i, weight=1)
+            self.grid_rowconfigure(i + 2, weight=1)
 
         self.header_frame = tk.Frame(self, bg='#add8e6')
         self.header_frame.grid(row=0, column=0, columnspan=6, sticky='e', padx=10, pady=10)
@@ -125,34 +130,60 @@ class LoginPage(tk.Frame):
 class BookingPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-
+        tk.Label(self, text="Making a Booking", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, pady=20)
         tk.Button(
             self,
             text="Main Menu",
-            font=('Arial', 14),
-            command=lambda: controller.show_frame("MainMenuPage")).grid(row=2, column=2)
+            font=('Arial', 12),
+            command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5)
+        
+class ListingsPage(BasePage):
+    def __init__(self, parent, controller):
+        super().__init__(parent, controller)
+        tk.Label(self, text="Film Listings", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, pady=20)
+        tk.Button(
+            self,
+            text="Main Menu",
+            font=('Arial', 12),
+            command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5)
+        
+        
+class CancelPage(BasePage):
+    def __init__(self, parent, controller):
+        super().__init__(parent, controller)
+        tk.Label(self, text="Cancel a Booking", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, pady=20)
+        tk.Button(
+            self,
+            text="Main Menu",
+            font=('Arial', 12),
+            command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5)
+            
+            
 
 class MainMenuPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
 
-        for i in range(5):
-            self.grid_columnconfigure(i, weight=1)
-            self.grid_rowconfigure(i + 2, weight=1)
-
-        tk.Label(self, text="Main Menu", font=('Arial', 18), bg='#add8e6').grid(row=1, column=2, pady=20)
+        tk.Label(self, text="Main Menu", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, pady=20)
 
         tk.Button(
             self,
             text="Book Tickets",
             font=('Arial', 14),
-            command=lambda: controller.show_frame("BookingPage")).grid(row=2, column=5)
+            command=lambda: controller.show_frame("BookingPage")).grid(row=3, column=3)
+        
+        tk.Button(
+            self,
+            text="Cancel Tickets",
+            font=('Arial', 14),
+            command=lambda: controller.show_frame("CancelPage")).grid(row=4, column=3)
+        
 
         tk.Button(
             self,
-            text="Log out",
+            text="Film Listings",
             font=('Arial', 14),
-            command=self.logout).grid(row=3, column=5)
+            command=lambda: controller.show_frame("ListingsPage")).grid(row=5, column=3)
 
 if __name__ == "__main__":
     app = CinemaBookingApp()
