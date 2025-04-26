@@ -14,6 +14,11 @@ CREATE TABLE IF NOT EXISTS staff (
 )
 ''')
 
+#cur.execute('''
+#INSERT INTO staff (username, userForename, userSurname, userType, userPassword)
+#VALUES (?, ?, ?, ?, ?)
+#''', ('normalstaff', 'Arvin', 'Valad', 1, 'password123'))
+
 cur.execute('''
 CREATE TABLE IF NOT EXISTS movie (
     movieID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,6 +27,7 @@ CREATE TABLE IF NOT EXISTS movie (
     genre TEXT NOT NULL,
     age TEXT NOT NULL,
     rating FLOAT NOT NULL,
+    director TEXT NOT NULL,
     cast TEXT NOT NULL
 )
 ''')
@@ -85,12 +91,6 @@ CREATE TABLE IF NOT EXISTS booking (
     FOREIGN KEY (seatID) REFERENCES seat(seatID)
 )
 ''')
-
-#Example insert
-cur.execute('''
-INSERT INTO staff (username, userForename, userSurname, userType, userPassword)
-VALUES (?, ?, ?, ?, ?)
-''', ('normalstaff', 'Arvin', 'Valad', 1, 'password123'))
 
 con.commit()
 con.close()
