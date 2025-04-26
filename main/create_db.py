@@ -1,6 +1,6 @@
 import sqlite3
 
-con = sqlite3.connect("HorizonCineama.db")
+con = sqlite3.connect("HorizonCinema.db")
 cur = con.cursor()
 
 cur.execute('''
