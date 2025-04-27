@@ -5,8 +5,8 @@ import datetime
 class CinemaBookingApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Cinema Booking System")
-        self.geometry("700x300")
+        self.title("Horizon Cinemas")
+        self.geometry("700x700")
         self.configure(bg='#add8e6')
 
         for i in range(5):
@@ -136,6 +136,12 @@ class BookingPage(BasePage):
             text="Main Menu",
             font=('Arial', 12),
             command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5)
+        
+        for i in range(3):
+            self.grid_columnconfigure(i, weight=1)
+            self.grid_rowconfigure(i * 4, weight=1)
+            
+        tk.Label(self, text=)
         
 class ListingsPage(BasePage):
     def __init__(self, parent, controller):
