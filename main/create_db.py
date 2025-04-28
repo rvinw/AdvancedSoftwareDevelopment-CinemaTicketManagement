@@ -14,16 +14,17 @@ CREATE TABLE IF NOT EXISTS staff (
 )
 ''')
 
-cur.execute('''
+cur.executemany('''
 INSERT INTO staff (username, userForename, userSurname, userType, userPassword)
     VALUES (?, ?, ?, ?, ?)
-    ''', ('normalstaff', 'Arvin', 'Valad', 1, 'password123'),
+''', [
+    ('normalstaff', 'Arvin', 'Valad', 1, 'password123'),
     ('BookingStaff', 'Vincent', 'Richardson-Price', 1, 'staffpass123'),
     ('Manager', 'Jake', 'Richardson-Price', 2, 'manpass123'),
     ('Admin', 'Alex', 'Nakhle', 3, 'adminpass123')
-    
-    
-    )
+])
+
+
 
 cur.execute('''
 CREATE TABLE IF NOT EXISTS movie (
