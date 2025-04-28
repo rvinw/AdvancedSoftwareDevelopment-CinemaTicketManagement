@@ -14,10 +14,10 @@ def validate_user_login(username, password):
     conn.close()
 
     if result:
-        usertype = result[0]
-        return usertype
+        return result[0]  # usertype
     else:
-        return 'Invalid username or password'
+        return None
+
 
 
 def add_booking():

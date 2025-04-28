@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import *
 import datetime
+import tkinter.messagebox as messagebox
 
 class CinemaBookingApp(tk.Tk):
     def __init__(self):
@@ -120,12 +121,20 @@ class LoginPage(tk.Frame):
                 self.password_entry.config(show='*')
 
     def login(self):
+        from db_queries.validate_user_login import validate_user_login
+
         username = self.username_entry.get()
         password = self.password_entry.get()
 
         if username != "Enter username" and password != "Enter password":
-            self.controller.logged_in_user = username
-            self.controller.show_frame("MainMenuPage")
+            usertype = validate_user_login(username, password)
+            if usertype:
+                self.controller.logged_in_user = username
+                self.controller.user_type = usertype  # Save the usertype too if needed
+                self.controller.show_frame("MainMenuPage")
+            else:
+                messagebox.showerror("Login Failed", "Invalid username or password.")
+
 
 class BookingPage(BasePage):
     def __init__(self, parent, controller):
