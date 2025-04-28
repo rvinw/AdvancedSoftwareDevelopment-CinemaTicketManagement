@@ -19,6 +19,7 @@ def show_error_popup(message):
     root.withdraw()  # Hide the main window
     messagebox.showerror("File Missing", message)
     root.destroy()  # Close the root window after the pop-up is shown
+    
 
 if __name__ == "__main__":
     required_files = []
