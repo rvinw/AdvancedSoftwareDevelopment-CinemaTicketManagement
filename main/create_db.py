@@ -18,7 +18,7 @@ cur.executemany('''
 INSERT INTO staff (username, userForename, userSurname, userType, userPassword)
     VALUES (?, ?, ?, ?, ?)
 ''', [
-    ('normalstaff', 'Arvin', 'Valad', 1, 'password123'),
+    ('Customer', 'Arvin', 'Valad', 1, 'custpass123'),
     ('BookingStaff', 'Vincent', 'Richardson-Price', 1, 'staffpass123'),
     ('Manager', 'Jake', 'Richardson-Price', 2, 'manpass123'),
     ('Admin', 'Alex', 'Nakhle', 3, 'adminpass123')
