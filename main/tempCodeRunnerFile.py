@@ -1,2 +1,1 @@
- (cityID) REFERENCES city(cityID)
-)
+    PRIMARY KEY (seatID, screenID),
