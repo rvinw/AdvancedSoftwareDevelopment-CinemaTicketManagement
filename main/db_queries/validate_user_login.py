@@ -5,7 +5,7 @@ def validate_user_login(username, password):
     cursor = conn.cursor()
 
     cursor.execute('''
-        SELECT usertype, userForenmae FROM staff
+        SELECT userType, userForename FROM staff
         WHERE username = ? AND userPassword = ?
     ''', (username, password))
 

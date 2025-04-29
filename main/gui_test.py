@@ -132,9 +132,9 @@ class LoginPage(tk.Frame):
         password = self.password_entry.get()
 
         if username != "Enter username" and password != "Enter password":
-            usertype = validate_user_login(username, password)
+            usertype, user_forename = validate_user_login(username, password)
             if usertype:
-                self.controller.logged_in_user = username
+                self.controller.logged_in_user = user_forename
                 self.controller.user_type = usertype
                 self.controller.show_frame("MainMenuPage")
             else:
@@ -168,18 +168,64 @@ class CancelPage(BasePage):
 class MainMenuPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        tk.Label(self, text="Main Menu", font=('Arial', 18), bg='#add8e6').grid(row=1, column=2, columnspan=3, pady=20, sticky='nsew')
+        self.menu_label = tk.Label(self, text="Main Menu", font=('Arial', 18), bg='#add8e6')
+        self.menu_label.grid(row=1, column=2, columnspan=3, pady=20, sticky='nsew')
 
-        tk.Button(self, text="Book Tickets", font=('Arial', 14),
-                  command=lambda: controller.show_frame("BookingPage")).grid(row=3, column=3, sticky='nsew')
+        self.book_btn = tk.Button(self, text="Book Tickets", font=('Arial', 14),
+                                  command=lambda: controller.show_frame("BookingPage"))
+        self.book_btn.grid(row=3, column=3, sticky='nsew')
 
-        tk.Button(self, text="Cancel Tickets", font=('Arial', 14),
-                  command=lambda: controller.show_frame("CancelPage")).grid(row=4, column=3, sticky='nsew')
+        self.cancel_btn = tk.Button(self, text="Cancel Tickets", font=('Arial', 14),
+                                    command=lambda: controller.show_frame("CancelPage"))
+        self.cancel_btn.grid(row=4, column=3, sticky='nsew')
 
-        tk.Button(self, text="Film Listings", font=('Arial', 14),
-                  command=lambda: controller.show_frame("ListingsPage")).grid(row=5, column=3, sticky='nsew')
+        self.listings_btn = tk.Button(self, text="Film Listings", font=('Arial', 14),
+                                      command=lambda: controller.show_frame("ListingsPage"))
+        self.listings_btn.grid(row=5, column=3, sticky='nsew')
 
+        self.manager_widgets = []
+        self.admin_widgets = []
 
+    def update_header(self):
+        super().update_header()
+        self.update_content()
+
+    def update_content(self):
+        for widget in self.manager_widgets + self.admin_widgets:
+            widget.grid_forget()
+
+        self.manager_widgets.clear()
+        self.admin_widgets.clear()
+
+        user_type = self.controller.user_type
+
+        # General options for all users
+        if user_type in [1, 2, 3]:
+            self.book_btn.grid(row=3, column=3, sticky='nsew')
+            self.cancel_btn.grid(row=4, column=3, sticky='nsew')
+            self.listings_btn.grid(row=5, column=3, sticky='nsew')
+
+        # Additional options for Managers (user_type == 2)
+        if user_type == 2:
+            add_city_btn = tk.Button(self, text="Add City", font=('Arial', 14))
+            add_cinema_btn = tk.Button(self, text="Add Cinema", font=('Arial', 14))
+
+            add_city_btn.grid(row=6, column=3, sticky='nsew')
+            add_cinema_btn.grid(row=7, column=3, sticky='nsew')
+
+            self.manager_widgets.extend([add_city_btn, add_cinema_btn])
+
+        # Additional options for Admins (user_type == 3)
+        if user_type == 3:
+            screening_btn = tk.Button(self, text="Manage Screening", font=('Arial', 14))
+            settings_btn = tk.Button(self, text="Listing Settings", font=('Arial', 14))
+            reports_btn = tk.Button(self, text="Reports", font=('Arial', 14))
+
+            screening_btn.grid(row=6, column=3, sticky='nsew')
+            settings_btn.grid(row=7, column=3, sticky='nsew')
+            reports_btn.grid(row=8, column=3, sticky='nsew')
+
+            self.admin_widgets.extend([screening_btn, settings_btn, reports_btn])
 if __name__ == "__main__":
     app = CinemaBookingApp()
     app.mainloop()
