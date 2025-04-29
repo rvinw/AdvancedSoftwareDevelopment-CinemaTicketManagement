@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS movie (
     genre TEXT NOT NULL,
     age TEXT NOT NULL,
     rating FLOAT NOT NULL,
+    runTime TEXT NOT NULL,
     directors TEXT NOT NULL,
     cast TEXT NOT NULL
 )
@@ -58,7 +59,7 @@ cur.execute('''
 CREATE TABLE IF NOT EXISTS show (
     showID INTEGER PRIMARY KEY AUTOINCREMENT,
     movieID INTEGER NOT NULL,
-    showTime TEXT NOT NULL,
+    showDateTime TEXT NOT NULL,  -- ISO format: "2025-04-30 19:30:00"
     screenID INTEGER NOT NULL,
     FOREIGN KEY (movieID) REFERENCES movie(movieID),
     FOREIGN KEY (screenID) REFERENCES screen(screenID)
