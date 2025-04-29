@@ -1,0 +1,2 @@
+ (cityID) REFERENCES city(cityID)
+)

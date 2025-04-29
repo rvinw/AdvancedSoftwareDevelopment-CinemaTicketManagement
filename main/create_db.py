@@ -14,18 +14,6 @@ CREATE TABLE IF NOT EXISTS staff (
 )
 ''')
 
-cur.executemany('''
-INSERT INTO staff (username, userForename, userSurname, userType, userPassword)
-    VALUES (?, ?, ?, ?, ?)
-''', [
-    ('Customer', 'Arvin', 'Valad', 1, 'custpass123'),
-    ('BookingStaff', 'Vincent', 'Richardson-Price', 1, 'staffpass123'),
-    ('Manager', 'Jake', 'Richardson-Price', 2, 'manpass123'),
-    ('Admin', 'Alex', 'Nakhle', 3, 'adminpass123')
-])
-
-
-
 cur.execute('''
 CREATE TABLE IF NOT EXISTS movie (
     movieID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,7 +22,7 @@ CREATE TABLE IF NOT EXISTS movie (
     genre TEXT NOT NULL,
     age TEXT NOT NULL,
     rating FLOAT NOT NULL,
-    director TEXT NOT NULL,
+    directors TEXT NOT NULL,
     cast TEXT NOT NULL
 )
 ''')
@@ -59,7 +47,8 @@ CREATE TABLE IF NOT EXISTS cinema (
 cur.execute('''
 CREATE TABLE IF NOT EXISTS screen (
     screenID INTEGER PRIMARY KEY AUTOINCREMENT,
-    cinemaID INTEGER NOT NULL UNIQUE,
+    cinemaID INTEGER NOT NULL,
+    screenName INTEGER NOT NULL,
     capacity INTEGER NOT NULL,
     FOREIGN KEY (cinemaID) REFERENCES cinema(cinemaID)
 )
