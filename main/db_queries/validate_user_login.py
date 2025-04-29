@@ -5,7 +5,7 @@ def validate_user_login(username, password):
     cursor = conn.cursor()
 
     cursor.execute('''
-        SELECT usertype FROM staff
+        SELECT usertype, userForenmae FROM staff
         WHERE username = ? AND userPassword = ?
     ''', (username, password))
 
@@ -14,16 +14,12 @@ def validate_user_login(username, password):
     conn.close()
 
     if result:
-        return result[0]  # usertype
+        usertype = result[0]
+        user_forename = result[1]
+        return usertype, user_forename
     else:
-        return None
+        return 'Invalid username or password'
 
 
-
-def add_booking():
-    pass
-
-def cancel_booking():
-    pass
 
 #print(validate_user_login("normalstaff", "password123"))
