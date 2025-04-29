@@ -18,7 +18,9 @@ def validate_user_login(username, password):
         user_forename = result[1]
         return usertype, user_forename
     else:
-        return 'Invalid username or password'
+        #might change later
+        #sreturn 'Invalid username or password'
+        return 'None', 'None'
 
 
 

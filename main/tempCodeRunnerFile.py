@@ -1,1 +1,1 @@
-    PRIMARY KEY (seatID, screenID),
+
