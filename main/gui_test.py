@@ -146,16 +146,73 @@ class BookingPage(BasePage):
         super().__init__(parent, controller)
         tk.Label(self, text="Making a Booking", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, columnspan=4, pady=20, sticky='nsew')
         tk.Button(self, text="Main Menu", font=('Arial', 12),
-                  command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5, sticky='nsew')
+                  command=lambda: controller.show_frame("MainMenuPage")).grid(row=0, column=5, sticky='nsew')
 
 
 class ListingsPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        tk.Label(self, text="Film Listings", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, columnspan=4, pady=20, sticky='nsew')
-        tk.Button(self, text="Main Menu", font=('Arial', 12),
-                  command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5, sticky='nsew')
 
+        # Make the whole page responsive
+        for i in range(6):
+            self.grid_columnconfigure(i, weight=1)
+        for i in range(10):
+            self.grid_rowconfigure(i, weight=1)
+
+        # header
+        header_frame = tk.Frame(self, bg='#add8e6')
+        header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
+
+        tk.Label(header_frame, text="Film Listings", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
+                  command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
+
+        #scroll container
+        container = tk.Frame(self, bg='white')
+        container.grid(row=2,rowspan=10, column=0, columnspan=12, sticky='nsew', padx=10, pady=10)
+
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
+
+        canvas = tk.Canvas(container, bg='white', highlightthickness=0)
+        scrollbar = tk.Scrollbar(container, orient='vertical', command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg='white')
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor='nw')
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.grid(row=0, column=0, sticky='nsew')
+        scrollbar.grid(row=0, column=1, sticky='ns')
+
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+        canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
+        from db_queries.show_listings import get_movies
+        movies = get_movies()
+        row_index = 0
+
+        for movie in movies:
+            frame = tk.Frame(scrollable_frame, bg='white', bd=1, relief='solid', padx=12, pady=10)
+            frame.grid(row=row_index, column=0, sticky='nsew', pady=8)
+
+            tk.Label(frame, text=movie["title"], font=('Arial', 14, 'bold'), bg='white').pack(anchor='w')
+            tk.Label(frame, text=f"Directors: {movie['directors']}", font=('Arial', 11), bg='white').pack(anchor='w', pady=(2, 0))
+
+            if movie.get("cast"):
+                tk.Label(frame, text=f"Cast: {movie['cast']}", font=('Arial', 10), wraplength=640, justify='left', bg='white').pack(anchor='w', pady=(2, 0))
+
+            tk.Label(frame, text=f"Genre: {movie['genre']}", font=('Arial', 10), bg='white').pack(anchor='w', pady=(2, 0))
+            tk.Label(frame, text=f"Rating: {movie['rating']} | Age: {movie['age']} | Runtime: {movie['runTime']}", font=('Arial', 10), bg='white').pack(anchor='w', pady=(2, 0))
+            tk.Label(frame, text=f"Synopsis: {movie['description']}", font=('Arial', 10), wraplength=640, justify='left', bg='white').pack(anchor='w', pady=(4, 0))
+
+            row_index += 1
 
 class CancelPage(BasePage):
     def __init__(self, parent, controller):
