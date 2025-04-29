@@ -170,28 +170,91 @@ class AddCinemaPage(BasePage):
         super().__init__(parent, controller)
         
         tk.Label(self, text="Add a Cinema", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, columnspan=4, pady=20, sticky='nsew')
-        tk.Button(self, text="Main Menu", font=('Arial', 12),
-                  command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5, sticky='nsew')
+        tk.Button(self, text="Main Menu", font=('Arial', 12), command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5, sticky='nsew')
         
-        # City Name Label + Entry
         tk.Label(self, text="City Name :", font=('Arial', 14), bg='#add8e6').grid(row=2, column=1, sticky='e', padx=10, pady=10)
         self.new_city_name = ttk.Entry(self, font=('Arial', 14), width=25)
         self.new_city_name.grid(row=2, column=2, columnspan=2, sticky='w')
 
-        # Number of Screens Label + Dropdown
         tk.Label(self, text="Number of Screens :", font=('Arial', 14), bg='#add8e6').grid(row=3, column=1, sticky='e', padx=10, pady=10)
         self.number_of_screens = ttk.Combobox(self, font=('Arial', 14), width=22, state="readonly")
-        self.number_of_screens['values'] = [str(i) for i in range(1, 7)]  # 1 to 6
-        self.number_of_screens.current(0)  # Default to 1
+        self.number_of_screens['values'] = [str(i) for i in range(1, 7)]
+        self.number_of_screens.current(0)
         self.number_of_screens.grid(row=3, column=2, columnspan=2, sticky='w')
+        
+        tk.Button(self, text="Create Cinema", font=('Arial', 14), command=self.create_cinema).grid(row=4, column=2, columnspan=2, pady=20)
+
+    def create_cinema(self):
+        city_name = self.new_city_name.get()
+        num_screens = self.number_of_screens.get()
+        pass
+
 
 
 class AddListingPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        tk.Label(self, text="Add a City", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, columnspan=4, pady=20, sticky='nsew')
+
+        tk.Label(self, text="Add a Listing", font=('Arial', 18), bg='#add8e6').grid(
+            row=1, column=1, columnspan=4, pady=20, sticky='nsew'
+        )
         tk.Button(self, text="Main Menu", font=('Arial', 12),
-                  command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5, sticky='nsew')
+                  command=lambda: controller.show_frame("MainMenuPage")).grid(
+            row=1, column=5, sticky='nsew'
+        )
+
+        labels = [
+            "Film Name", "Director", "Cast", "Synopsis",
+            "Rating", "Genre", "Age Rating", "Runtime"
+        ]
+
+        self.entries = {}
+
+        for i, label_text in enumerate(labels):
+            row = i + 3
+            tk.Label(self, text=label_text, font=('Arial', 14), bg='#add8e6').grid(
+                row=row, column=2, sticky='e', padx=10, pady=5
+            )
+
+            if label_text == "Age Rating":
+                age_options = ["U", "PG", "12", "12A", "15", "18"]
+                age_combobox = ttk.Combobox(self, values=age_options, font=('Arial', 14), width=22, state="readonly")
+                age_combobox.current(0)
+                age_combobox.grid(row=row, column=3, sticky='w', pady=5)
+                self.entries["Age Rating"] = age_combobox
+            else:
+                entry = tk.Entry(self, font=('Arial', 14), width=25)
+                entry.grid(row=row, column=3, sticky='w', pady=5)
+                self.entries[label_text] = entry
+
+        tk.Button(self, text="Create Listing", font=('Arial', 14),
+                  command=self.create_listing).grid(
+            row=12, column=2, columnspan=2, pady=20
+        )
+
+    def create_listing(self):
+        data = {key: field.get().strip() for key, field in self.entries.items()}
+
+        # Basic validation
+        for field, value in data.items():
+            if not value:
+                messagebox.showerror("Input Error", f"'{field}' cannot be empty.")
+                return
+
+        if not data["Runtime"].isdigit():
+            messagebox.showerror("Input Error", "'Runtime' must be a number.")
+            return
+
+        # If valid, continue
+        print("Creating listing with:", data)
+
+        # Example: pass to DB function
+        # add_listing(data["Film Name"], data["Director"], data["Cast"],
+        #             data["Synopsis"], data["Rating"], data["Genre"],
+        #             data["Age Rating"], data["Runtime"])
+
+        messagebox.showinfo("Success", "Listing created successfully!")
+
 
 
 class ReportsPage(BasePage):
@@ -269,8 +332,8 @@ class MainMenuPage(BasePage):
 
     def show_manager_widgets(self):
         # Connecting manager buttons to their respective pages
-        add_city_btn = tk.Button(self, text="Add City", font=('Arial', 14),
-                                 command=lambda: self.controller.show_frame("AddCityPage"))
+        add_city_btn = tk.Button(self, text="Add Listing", font=('Arial', 14),
+                                 command=lambda: self.controller.show_frame("AddListingPage"))
         add_cinema_btn = tk.Button(self, text="Add Cinema", font=('Arial', 14),
                                    command=lambda: self.controller.show_frame("AddCinemaPage"))
 
