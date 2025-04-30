@@ -642,30 +642,30 @@ class ScreeningSettingsPage(BasePage):
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
 
         # Screen Name
-        tk.Label(self, text="Screen Name:", font=('Arial', 14), bg='#add8e6').grid(row=1, column=0, sticky='e', padx=10, pady=5)
+        tk.Label(self, text="Cinema ID:", font=('Arial', 14), bg='#add8e6').grid(row=3, column=0, sticky='e', padx=10, pady=5)
         self.screen_name_entry = ttk.Entry(self, font=('Arial', 14), width=30)
-        self.screen_name_entry.grid(row=1, column=1, padx=10, pady=5)
+        self.screen_name_entry.grid(row=3, column=1, padx=10, pady=5)
 
         # Cinema ID
-        tk.Label(self, text="Cinema ID:", font=('Arial', 14), bg='#add8e6').grid(row=2, column=0, sticky='e', padx=10, pady=5)
+        tk.Label(self, text="Screen Name:", font=('Arial', 14), bg='#add8e6').grid(row=4, column=0, sticky='e', padx=10, pady=5)
         self.cinema_id_entry = ttk.Entry(self, font=('Arial', 14), width=30)
-        self.cinema_id_entry.grid(row=2, column=1, padx=10, pady=5)
+        self.cinema_id_entry.grid(row=4, column=1, padx=10, pady=5)
 
         # Capacity
-        tk.Label(self, text="Capacity:", font=('Arial', 14), bg='#add8e6').grid(row=3, column=0, sticky='e', padx=10, pady=5)
+        tk.Label(self, text="Capacity:", font=('Arial', 14), bg='#add8e6').grid(row=5, column=0, sticky='e', padx=10, pady=5)
         self.capacity_entry = ttk.Entry(self, font=('Arial', 14), width=30)
-        self.capacity_entry.grid(row=3, column=1, padx=10, pady=5)
+        self.capacity_entry.grid(row=5, column=1, padx=10, pady=5)
 
         # Add Screen Button
-        tk.Button(self, text="Add Screen", font=('Arial', 14), command=self.add_screen).grid(row=4, column=0, columnspan=2, pady=15)
+        tk.Button(self, text="Add Screen", font=('Arial', 14), command=self.add_screen).grid(row=6, column=0, columnspan=2, pady=15)
 
         # Screen List
         self.screen_list_label = tk.Label(self, text="Screens List", font=('Arial', 16), bg='#add8e6')
-        self.screen_list_label.grid(row=5, column=0, columnspan=2, pady=20)
+        self.screen_list_label.grid(row=7, column=0, columnspan=2, pady=20)
 
         # Screen Table
         self.screen_table = ttk.Treeview(self, columns=("ScreenID", "CinemaID", "Screen Name", "Capacity"), show="headings")
-        self.screen_table.grid(row=6, column=0, columnspan=2, padx=10, pady=10)
+        self.screen_table.grid(row=8, column=0, columnspan=2, padx=10, pady=10)
 
         # Defining columns
         self.screen_table.heading("ScreenID", text="ScreenID")
