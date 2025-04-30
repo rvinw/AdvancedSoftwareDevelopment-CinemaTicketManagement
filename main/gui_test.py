@@ -149,29 +149,6 @@ class LoginPage(tk.Frame):
 class BookingPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-<<<<<<< HEAD
-
-        self.controller = controller
-        self.selected_seats = set()
-        self.seat_buttons = {}
-        self.seat_matrix = []
-        self.seat_frame = None
-
-        tk.Label(self, text="Making a Booking", font=('Arial', 18), bg='#add8e6').grid(
-            row=1, column=1, columnspan=4, pady=20, sticky='nsew'
-        )
-
-        tk.Button(self, text="Main Menu", font=('Arial', 12),
-                  command=lambda: controller.show_frame("MainMenuPage")).grid(
-            row=0, column=5, sticky='nsew'
-        )
-
-        tk.Label(self, text="Show ID:", font=('Arial', 14)).grid(row=2, column=1, sticky='nsew')
-        self.show_id_entry = tk.Entry(self, font=('Arial', 14), width=25)
-        self.show_id_entry.grid(row=2, column=2, sticky='nsew')
-
-        tk.Label(self, text="Choose Date:", font=('Arial', 14)).grid(row=3, column=1, sticky='nsew')
-=======
         from db_queries.show_listings import get_title, get_cinema_name
         movie_list = get_title()
         cinema_name = get_cinema_name()
@@ -191,7 +168,6 @@ class BookingPage(BasePage):
         self.cinema_combo = ttk.Combobox(self, values=cinema_name, font=('Arial'))
         self.cinema_combo.grid(row=3, column=2, sticky='nsew')
         
->>>>>>> b6548bdb7f955cdc6e31825c231b5e90e98a0222
         today = date.today()
         max_date = today + timedelta(days=7)
         self.date_entry = DateEntry(self, font=('Arial'), mindate=today, maxdate=max_date, date_pattern='yyyy-mm-dd')
