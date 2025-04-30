@@ -67,3 +67,25 @@ def get_cinema_name():
     # Extract titles from list of tuples
     cinema = [row[0] for row in results]
     return cinema
+
+def get_show_id(movie_title, cinema_name, show_date):
+    conn = sqlite3.connect("HorizonCinema.db")
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT s.showID FROM show s
+        JOIN movie m ON s.movieID = m.movieID
+        JOIN cinema c ON s.cinemaID = c.cinemaID
+        WHERE m.title = ? AND c.cinemaName = ? AND DATE(s.showDateTime) = ?
+    """, (movie_title, cinema_name, show_date))
+    row = cur.fetchone()
+    conn.close()
+    if row:
+        return row[0]
+    raise ValueError("No matching show found.")
+
+# Pricing per seat type
+SEAT_PRICES = {
+    "lower": 7.00,
+    "upper": 9.00,
+    "vip": 12.00
+}
