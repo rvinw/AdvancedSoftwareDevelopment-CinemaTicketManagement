@@ -251,54 +251,94 @@ class ListingsPage(BasePage):
             tk.Label(frame, text=f"Synopsis: {movie['description']}", font=('Arial', 10), wraplength=640, justify='left', bg='white').pack(anchor='w', pady=(4, 0))
 
             row_index += 1
-            
+        
+
 class CancelPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
         self.controller = controller
         
-        # Make the whole page responsive
         for i in range(6):
             self.grid_columnconfigure(i, weight=1)
         for i in range(10):
             self.grid_rowconfigure(i, weight=1)
 
-        # header
+        # Header
         header_frame = tk.Frame(self, bg='#add8e6')
         header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
-
         tk.Label(header_frame, text="Cancel booking", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
         tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
-                command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
+                  command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
 
-        # Label for Booking ID (left-aligned)
-        tk.Label(self, text="Enter Booking ID:", font=('Arial', 14)).grid(
-            row=2, column=2, sticky="e", padx=(10, 5), pady=10
-        )
-
-        # Entry field for Booking ID
+        # Booking ID
+        tk.Label(self, text="Enter Booking ID:", font=('Arial', 14)).grid(row=2, column=2, sticky="e", padx=(10, 5), pady=10)
         self.booking_id_entry = tk.Entry(self, font=('Arial', 14))
-        self.booking_id_entry.grid(
-            row=2, column=3, columnspan=1, sticky="ew", padx=(5, 5), pady=10
-        )
+        self.booking_id_entry.grid(row=2, column=3, sticky="ew", padx=(5, 5), pady=10)
 
-        # Search button (right-aligned)
-        tk.Button(self, text="Search", font=('Arial', 14)).grid(
+        # Search button
+        tk.Button(self, text="Search", font=('Arial', 14), command=self.search_booking).grid(
             row=2, column=4, sticky="w", padx=(5, 10), pady=10
         )
 
-        # Label for Booking Data (left-aligned, will be displayed after search)
+        # Booking data label
         self.booking_data_label = tk.Label(self, text="Booking Data will be shown here", font=('Arial', 12))
-        self.booking_data_label.grid(
-            row=3, column=3, columnspan=1, sticky="w", padx=(10, 5), pady=(10, 20)
-        )
+        self.booking_data_label.grid(row=3, column=3, columnspan=1, sticky="w", padx=(10, 5), pady=(10, 20))
 
-        # Cancel Booking Button (center-aligned)
-        tk.Button(self, text="Cancel Booking", font=('Arial', 14)).grid(
+          # Cancel Booking Button
+        tk.Button(self, text="Cancel Booking", font=('Arial', 14), command=self.cancel_booking_action).grid(
             row=4, column=3, columnspan=1, sticky="nsew", padx=(5, 10), pady=15
         )
 
+        # Uncancel Booking Button
+        tk.Button(self, text="Uncancel Booking", font=('Arial', 14), command=self.handle_uncancel).grid(
+            row=5, column=3,columnspan=1,sticky="nsew", padx=(5, 10), pady=15
+        )
+
+    def search_booking(self):
+        from db_queries.cancel_booking import get_booking_info
+        booking_id = self.booking_id_entry.get().strip()
+        if not booking_id:
+            messagebox.showerror("Input Error", "Please enter a Booking ID.")
+            return
+
+        result = get_booking_info(booking_id)
+
+        if isinstance(result, str) and result.startswith("Error:"):
+            messagebox.showerror("Error", result)
+            return
+
+        if result is None:
+            self.booking_data_label.config(text="No booking found with this ID.")
+        else:
+            cancelled = "Yes" if result[5] else "No"
+            self.booking_data_label.config(
+                text=f"Booking ID: {result[0]}\nShow ID: {result[1]}\nShow Time: {result[2]}\nCancelled: {cancelled}"
+            )
+
+    def cancel_booking_action(self):
+        from db_queries.cancel_booking import cancel_booking
+        booking_id = self.booking_id_entry.get().strip()
+        if not booking_id:
+            messagebox.showerror("Input Error", "Please enter a Booking ID.")
+            return
+        cancel_booking(booking_id)
+        self.search_booking()  # Refresh label
+
+    def handle_uncancel(self):
+        from db_queries.cancel_booking import uncancel_booking
+        booking_id = self.booking_id_entry.get().strip()
+
+        if not booking_id.isdigit():
+            messagebox.showerror("Input Error", "Please enter a valid numeric Booking ID.")
+            return
+
+        success, msg = uncancel_booking(int(booking_id))
         
+        if success:
+            messagebox.showinfo("Success", msg)
+        else:
+            messagebox.showerror("Failed", msg)
+            
         
 class AddCityPage(BasePage):
     def __init__(self, parent, controller):
