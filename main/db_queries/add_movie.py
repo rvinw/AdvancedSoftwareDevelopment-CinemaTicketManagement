@@ -1,6 +1,6 @@
 import sqlite3
 
-def add_movie(title, description, genre, age, rating, runtime, directors, cast):
+def add_movie_func(title, description, genre, age, rating, runtime, directors, cast):
     con = sqlite3.connect("HorizonCinema.db")
     cur = con.cursor()
 

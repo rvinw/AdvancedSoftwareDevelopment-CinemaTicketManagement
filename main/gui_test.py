@@ -334,6 +334,7 @@ class AddListingPage(BasePage):
         self.status_label.grid(row=13, column=2, columnspan=2, sticky='w')
 
     def create_listing(self):
+        from db_queries.add_movie import add_movie_func
         # Map display labels to DB column names
         field_mapping = {
             "Film Name": "title",
@@ -366,7 +367,7 @@ class AddListingPage(BasePage):
 
         try:
             # Add movie to the database
-            add_movie(**movie_data)
+            add_movie_func(**movie_data)
             self.status_label.config(text="Movie added successfully!", fg='green')
 
             # Clear form inputs after successful submission
