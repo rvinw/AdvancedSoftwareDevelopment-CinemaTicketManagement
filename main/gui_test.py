@@ -16,7 +16,7 @@ class CinemaBookingApp(tk.Tk):
         self.frames = {}
         self.logged_in_user = "Guest"
 
-        for F in (LoginPage, MainMenuPage, BookingPage, CancelPage, ListingsPage, AddCinemaPage, AddListingPage, ReportsPage, ManageScreeningPage, ListingSettingsPage):
+        for F in (LoginPage, MainMenuPage, BookingPage, CancelPage, ListingsPage, AddCityPage, AddCinemaPage, AddListingPage, ReportsPage, ManageScreeningPage, ListingSettingsPage):
             page_name = F.__name__
             frame = F(parent=self, controller=self)
             self.frames[page_name] = frame
@@ -165,6 +165,29 @@ class CancelPage(BasePage):
         tk.Button(self, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5, sticky='nsew')
         
+class AddCityPage(BasePage):
+    def __init__(self, parent, controller):
+        super().__init__(parent, controller)
+        tk.Label(self, text="Add a City", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, columnspan=4, pady=20, sticky='nsew')
+        tk.Button(self, text="Main Menu", font=('Arial', 12), command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5, sticky='nsew')
+        
+        tk.Label(self, text="City Name:", font=('Arial', 14), bg='#add8e6').grid(row=2, column=1, sticky='e', padx=10, pady=10)
+        self.new_city_name = ttk.Entry(self, font=('Arial', 14), width=25)
+        self.new_city_name.grid(row=2, column=2, columnspan=2, sticky='w')
+        
+        tk.Label(self, text="Base Price:", font=('Arial', 14), bg='#add8e6').grid(row=3, column=1, sticky='e', padx=10, pady=10)
+        self.new_base_price = ttk.Entry(self, font=('Arial', 14), width=25)
+        self.new_base_price.grid(row=3, column=2, columnspan=2, sticky='w')
+        
+        tk.Button(self, text="Create City", font=('Arial', 14), command=self.create_city).grid(row=4, column=2, columnspan=2, pady=20)     
+
+    def create_city(self):
+        from db_queries.add_city import add_city
+        
+        add_city(self.new_city_name.get(), self.new_base_price.get())
+        
+        self.controller.show_frame("MainMenuPage")
+        
 class AddCinemaPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
@@ -175,19 +198,29 @@ class AddCinemaPage(BasePage):
         tk.Label(self, text="City Name :", font=('Arial', 14), bg='#add8e6').grid(row=2, column=1, sticky='e', padx=10, pady=10)
         self.new_city_name = ttk.Entry(self, font=('Arial', 14), width=25)
         self.new_city_name.grid(row=2, column=2, columnspan=2, sticky='w')
+    
+        tk.Label(self, text="Cinema Name :", font=('Arial', 14), bg='#add8e6').grid(row=3, column=1, sticky='e', padx=10, pady=10)
+        self.new_cinema_name = ttk.Entry(self, font=('Arial', 14), width=25)
+        self.new_cinema_name.grid(row=3, column=2, columnspan=2, sticky='w')
 
-        tk.Label(self, text="Number of Screens :", font=('Arial', 14), bg='#add8e6').grid(row=3, column=1, sticky='e', padx=10, pady=10)
+        tk.Label(self, text="Number of Screens :", font=('Arial', 14), bg='#add8e6').grid(row=4, column=1, sticky='e', padx=10, pady=10)
         self.number_of_screens = ttk.Combobox(self, font=('Arial', 14), width=22, state="readonly")
         self.number_of_screens['values'] = [str(i) for i in range(1, 7)]
         self.number_of_screens.current(0)
-        self.number_of_screens.grid(row=3, column=2, columnspan=2, sticky='w')
+        self.number_of_screens.grid(row=4, column=2, columnspan=2, sticky='w')
         
-        tk.Button(self, text="Create Cinema", font=('Arial', 14), command=self.create_cinema).grid(row=4, column=2, columnspan=2, pady=20)
+        tk.Button(self, text="Create Cinema", font=('Arial', 14), command=self.create_cinema).grid(row=5, column=2, columnspan=2, pady=20)
 
     def create_cinema(self):
+        from db_queries.add_cinema import add_cinema
+        
         city_name = self.new_city_name.get()
+        cinema_name = self.new_cinema_name.get()
         num_screens = self.number_of_screens.get()
-        pass
+        
+        add_cinema(cinema_name, num_screens, city_name)
+        
+        self.controller.show_frame("MainMenuPage")
 
 
 
@@ -332,15 +365,18 @@ class MainMenuPage(BasePage):
 
     def show_manager_widgets(self):
         # Connecting manager buttons to their respective pages
-        add_city_btn = tk.Button(self, text="Add Listing", font=('Arial', 14),
+        add_listing_btn = tk.Button(self, text="Add Listing", font=('Arial', 14),
                                  command=lambda: self.controller.show_frame("AddListingPage"))
+        add_city_btn = tk.Button(self, text="Add City", font=('Arial', 14),
+                                   command=lambda: self.controller.show_frame("AddCityPage"))        
         add_cinema_btn = tk.Button(self, text="Add Cinema", font=('Arial', 14),
                                    command=lambda: self.controller.show_frame("AddCinemaPage"))
 
-        add_city_btn.grid(row=6, column=3, sticky='nsew')
+        add_listing_btn.grid(row=6, column=3, sticky='nsew')
+        add_city_btn.grid(row=6, column=4, sticky='nsew')
         add_cinema_btn.grid(row=7, column=3, sticky='nsew')
 
-        self.manager_widgets.extend([add_city_btn, add_cinema_btn])
+        self.manager_widgets.extend([add_listing_btn, add_cinema_btn])
 
     def show_admin_widgets(self):
         # Connecting admin buttons to their respective pages

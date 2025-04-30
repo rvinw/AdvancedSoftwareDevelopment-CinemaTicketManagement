@@ -40,6 +40,7 @@ cur.execute('''
 CREATE TABLE IF NOT EXISTS cinema (
     cinemaID INTEGER PRIMARY KEY AUTOINCREMENT,
     cinemaName TEXT NOT NULL,
+    numberOfScreens INTEGER NOT NULL,
     cityID INTEGER NOT NULL,
     FOREIGN KEY (cityID) REFERENCES city(cityID)
 )
