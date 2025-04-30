@@ -678,7 +678,7 @@ class ScreeningSettingsPage(BasePage):
 
     def add_screen(self):
 
-        from db_queries.add_screening import add_screen
+        from db_queries.add_screening import add_screen 
         
         cinema_id = self.cinema_id_entry.get().strip()
         screen_name = self.screen_name_entry.get().strip()
