@@ -150,7 +150,7 @@ class BookingPage(BasePage):
             self.grid_columnconfigure(i, weight=1)
             self.grid_rowconfigure(i * 4, weight=1)
             
-        tk.Label(self, text="test", font=('Arial', 12), bg='#add8e6').grid(row=10, column=1, padx=10)
+        tk.Label(self, text="")
         
 class ListingsPage(BasePage):
     def __init__(self, parent, controller):

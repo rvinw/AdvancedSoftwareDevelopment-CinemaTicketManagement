@@ -133,17 +133,21 @@ class LoginPage(tk.Frame):
     def login(self):
         from db_queries.validate_user_login import validate_user_login
 
-        username = self.username_entry.get()
-        password = self.password_entry.get()
+        username = self.username_entry.get().strip()
+        password = self.password_entry.get().strip()
 
-        if username != "Enter username" and password != "Enter password":
-            usertype, user_forename = validate_user_login(username, password)
-            if usertype:
-                self.controller.logged_in_user = user_forename
-                self.controller.user_type = usertype
-                self.controller.show_frame("MainMenuPage")
-            else:
-                messagebox.showerror("Login Failed", "Invalid username or password.")
+        if username == "Enter username" or password == "Enter password":
+            messagebox.showerror("Input Error", "Please enter both username and password.")
+            return
+
+        usertype = validate_user_login(username, password)
+
+        if usertype:
+            self.controller.logged_in_user = username
+            self.controller.user_type = usertype
+            self.controller.show_frame("MainMenuPage")
+        else:
+            messagebox.showerror("Login Failed", "Invalid username or password.")
 
 
 class BookingPage(BasePage):

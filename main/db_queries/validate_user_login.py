@@ -1,26 +1,22 @@
 import sqlite3
 
 def validate_user_login(username, password):
-    conn = sqlite3.connect('HorizonCinema.db')
-    cursor = conn.cursor()
+    con = sqlite3.connect('HorizonCinema.db')
+    cur = con.cursor()
 
-    cursor.execute('''
-        SELECT userType, userForename FROM staff
-        WHERE username = ? AND userPassword = ?
+    # Assuming you have a table 'staff' with columns 'username' and 'userPassword'
+    cur.execute('''
+        SELECT userType FROM staff WHERE username = ? AND userPassword = ?
     ''', (username, password))
 
-    result = cursor.fetchone()
+    result = cur.fetchone()
+    con.close()
 
-    conn.close()
-
+    # If result is found, return the userType (1, 2, or 3)
     if result:
-        usertype = result[0]
-        user_forename = result[1]
-        return usertype, user_forename
+        return result[0]  # userType, which should be 1, 2, or 3
     else:
-        #might change later
-        #sreturn 'Invalid username or password'
-        return 'None', 'None'
+        return None  # No valid match
 
 
 
