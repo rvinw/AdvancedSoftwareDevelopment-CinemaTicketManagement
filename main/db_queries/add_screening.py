@@ -2,40 +2,37 @@ import sqlite3
 from datetime import datetime
 from tkinter import messagebox
 
-def validate_datetime(dt_string):
+
+def add_screen(cinema_id, screen_name, capacity):
     try:
-        dt = datetime.strptime(dt_string, "%Y-%m-%d %H:%M")
-
-        if dt < datetime.now():
-            return False, "Date/time cannot be in the past."
-
-        return True, dt
+        capacity = int(capacity)
     except ValueError:
-        return False, "Invalid date/time format. Use YYYY-MM-DD HH:MM"
+        return "Capacity must be a number."
 
-def add_show(movieID, showDateTime, screenID):
-    
-    valid, result = validate_datetime(showDateTime)
-    
-    if valid:
-        con = sqlite3.connect("HorizonCinema.db")
-        cur = con.cursor()
+    con = sqlite3.connect("HorizonCinema.db")
+    cur = con.cursor()
 
-        cur.execute('''
-        INSERT INTO show (movieID, showDateTime, screenID)
-        VALUES (?, ?, ?)
-        ''', (movieID, showDateTime, screenID))
-
-        con.commit()
+    # Optional: Check if screen already exists
+    cur.execute("SELECT * FROM screen WHERE screenName = ? AND cinemaID = ?", (screen_name, cinema_id))
+    if cur.fetchone():
         con.close()
-    
-    else:
-        messagebox.showerror("Invalid DateTime", result)
-    
-movieID = 1
-showDateTime = '2025-05-01 23:30'
-screenID = 1
+        return f"Screen '{screen_name}' already exists for this cinema."
 
+    cur.execute('''
+        INSERT INTO screen (cinemaID, screenName, capacity)
+        VALUES (?, ?, ?)
+    ''', (cinema_id, screen_name, capacity))
 
+    con.commit()
+    con.close()
+    return "Screen added successfully."
 
-add_show(movieID, showDateTime, screenID)
+def get_all_screens():
+    con = sqlite3.connect("HorizonCinema.db")
+    cur = con.cursor()
+
+    cur.execute("SELECT screenID, cinemaID, screenName, capacity FROM screen")
+    screens = cur.fetchall()
+
+    con.close()
+    return screens
