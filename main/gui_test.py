@@ -2,6 +2,9 @@ from tkinter import ttk
 import tkinter as tk
 import datetime
 import tkinter.messagebox as messagebox
+from tkcalendar import DateEntry
+from datetime import date, timedelta
+
 
 class CinemaBookingApp(tk.Tk):
     def __init__(self):
@@ -16,7 +19,7 @@ class CinemaBookingApp(tk.Tk):
         self.frames = {}
         self.logged_in_user = "Guest"
 
-        for F in (LoginPage, MainMenuPage, BookingPage, CancelPage, ListingsPage, AddCityPage, AddCinemaPage, AddListingPage, ReportsPage, ManageScreeningPage, ListingSettingsPage):
+        for F in (LoginPage, MainMenuPage, BookingPage, CancelPage, ListingsPage, AddCityPage, AddCinemaPage, AddMoviePage, ReportsPage, ManageScreeningPage, ListingSettingsPage):
             page_name = F.__name__
             frame = F(parent=self, controller=self)
             self.frames[page_name] = frame
@@ -145,9 +148,26 @@ class LoginPage(tk.Frame):
 class BookingPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
+        from db_queries.show_listings import get_title, get_cinema_name
+        movie_list = get_title()
+        cinema_name = get_cinema_name()
+        
         tk.Label(self, text="Making a Booking", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, columnspan=4, pady=20, sticky='nsew')
         tk.Button(self, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).grid(row=0, column=5, sticky='nsew')
+        tk.Label(self, text="Choose Film :", font=('Arial', 14)).grid(row=2, column=1, sticky='nsew')
+        self.movie_combo = ttk.Combobox(self, values=movie_list, font=('Arial'))
+        self.movie_combo.grid(row=2, column=2, sticky='nsew')
+        
+        tk.Label(self, text="Choose Cinema :", font=('Arial', 14)).grid(row=3, column=1, sticky='nsew')
+        self.cinema_combo = ttk.Combobox(self, values=cinema_name, font=('Arial'))
+        self.cinema_combo.grid(row=3, column=2, sticky='nsew')
+        
+        today = date.today()
+        max_date = today + timedelta(days=7)
+        tk.Label(self, text="Choose Date :", font=('Arial', 14)).grid(row=4, column=1, sticky='nsew')
+        self.date_entry = DateEntry(self, font=('Arial'), mindate=today, maxdate=max_date, date_pattern='yyyy-mm-dd')
+        self.date_entry.grid(row=4, column=2, sticky='nsew')
 
 
 class ListingsPage(BasePage):
@@ -170,13 +190,16 @@ class ListingsPage(BasePage):
 
         #scroll container
         container = tk.Frame(self, bg='white')
-        container.grid(row=2,rowspan=10, column=0, columnspan=12, sticky='nsew', padx=10, pady=10)
-
+        container.grid(row=2,rowspan=6, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
+        
+        # Make the canvas expand to fill the container
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
         canvas = tk.Canvas(container, bg='white', highlightthickness=0)
+
         scrollbar = tk.Scrollbar(container, orient='vertical', command=canvas.yview)
+
         scrollable_frame = tk.Frame(canvas, bg='white')
 
         scrollable_frame.bind(
@@ -187,7 +210,12 @@ class ListingsPage(BasePage):
         canvas.create_window((0, 0), window=scrollable_frame, anchor='nw')
         canvas.configure(yscrollcommand=scrollbar.set)
 
+        container.grid_columnconfigure(1, weight=0)  # scrollbar doesn't expand
+
+        # Canvas (left, fills available space)
         canvas.grid(row=0, column=0, sticky='nsew')
+
+        # Scrollbar (right, fixed width)
         scrollbar.grid(row=0, column=1, sticky='ns')
 
         def _on_mousewheel(event):
@@ -218,9 +246,50 @@ class ListingsPage(BasePage):
 class CancelPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        tk.Label(self, text="Cancel a Booking", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, columnspan=4, pady=20, sticky='nsew')
-        tk.Button(self, text="Main Menu", font=('Arial', 12),
-                  command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5, sticky='nsew')
+        self.controller = controller
+        
+        # Make the whole page responsive
+        for i in range(6):
+            self.grid_columnconfigure(i, weight=1)
+        for i in range(10):
+            self.grid_rowconfigure(i, weight=1)
+
+        # header
+        header_frame = tk.Frame(self, bg='#add8e6')
+        header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
+
+        tk.Label(header_frame, text="Cancel booking", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
+                command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
+
+        # Label for Booking ID (left-aligned)
+        tk.Label(self, text="Enter Booking ID:", font=('Arial', 14)).grid(
+            row=2, column=2, sticky="e", padx=(10, 5), pady=10
+        )
+
+        # Entry field for Booking ID
+        self.booking_id_entry = tk.Entry(self, font=('Arial', 14))
+        self.booking_id_entry.grid(
+            row=2, column=3, columnspan=1, sticky="ew", padx=(5, 5), pady=10
+        )
+
+        # Search button (right-aligned)
+        tk.Button(self, text="Search", font=('Arial', 14)).grid(
+            row=2, column=4, sticky="w", padx=(5, 10), pady=10
+        )
+
+        # Label for Booking Data (left-aligned, will be displayed after search)
+        self.booking_data_label = tk.Label(self, text="Booking Data will be shown here", font=('Arial', 12))
+        self.booking_data_label.grid(
+            row=3, column=3, columnspan=1, sticky="w", padx=(10, 5), pady=(10, 20)
+        )
+
+        # Cancel Booking Button (center-aligned)
+        tk.Button(self, text="Cancel Booking", font=('Arial', 14)).grid(
+            row=4, column=3, columnspan=1, sticky="nsew", padx=(5, 10), pady=15
+        )
+
+        
         
 class AddCityPage(BasePage):
     def __init__(self, parent, controller):
@@ -280,12 +349,12 @@ class AddCinemaPage(BasePage):
         self.controller.show_frame("MainMenuPage")
 
 
-class AddListingPage(BasePage):
+class AddMoviePage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
 
         # Title of the page
-        tk.Label(self, text="Add a Listing", font=('Arial', 18), bg='#add8e6').grid(
+        tk.Label(self, text="Add a Movie", font=('Arial', 18), bg='#add8e6').grid(
             row=1, column=1, columnspan=4, pady=20, sticky='nsew'
         )
         
@@ -324,8 +393,8 @@ class AddListingPage(BasePage):
                 self.entries[label_text] = entry
 
         # Create the submit button
-        tk.Button(self, text="Create Listing", font=('Arial', 14),
-                  command=self.create_listing).grid(
+        tk.Button(self, text="Submit", font=('Arial', 14),
+                  command=self.create_movie).grid(
             row=12, column=2, columnspan=2, pady=20
         )
 
@@ -333,7 +402,7 @@ class AddListingPage(BasePage):
         self.status_label = tk.Label(self, text="", font=('Arial', 10), fg='red')
         self.status_label.grid(row=13, column=2, columnspan=2, sticky='w')
 
-    def create_listing(self):
+    def create_movie(self):
         from db_queries.add_movie import add_movie_func
         # Map display labels to DB column names
         field_mapping = {
@@ -452,8 +521,8 @@ class MainMenuPage(BasePage):
 
     def show_manager_widgets(self):
         # Connecting manager buttons to their respective pages
-        add_listing_btn = tk.Button(self, text="Add Listing", font=('Arial', 14),
-                                 command=lambda: self.controller.show_frame("AddListingPage"))
+        add_listing_btn = tk.Button(self, text="Add Movie", font=('Arial', 14),
+                                 command=lambda: self.controller.show_frame("AddMoviePage"))
         add_city_btn = tk.Button(self, text="Add City", font=('Arial', 14),
                                    command=lambda: self.controller.show_frame("AddCityPage"))        
         add_cinema_btn = tk.Button(self, text="Add Cinema", font=('Arial', 14),
