@@ -38,4 +38,4 @@ screenID = 1
 
 
 
-add_cinema(movieID, showDateTime, screenID)
+add_show(movieID, showDateTime, screenID)
