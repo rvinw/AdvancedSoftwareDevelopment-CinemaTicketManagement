@@ -188,44 +188,53 @@ class ListingsPage(BasePage):
         tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
 
-        #scroll container
-        container = tk.Frame(self, bg='white')
-        container.grid(row=2,rowspan=6, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
-        
+        # Scroll container
+        container = tk.Frame(self, bg='#add8e6')
+        container.grid(row=2, rowspan=6, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
+
         # Make the canvas expand to fill the container
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
-        canvas = tk.Canvas(container, bg='white', highlightthickness=0)
-
-        scrollbar = tk.Scrollbar(container, orient='vertical', command=canvas.yview)
-
-        scrollable_frame = tk.Frame(canvas, bg='white')
-
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
-
-        canvas.create_window((0, 0), window=scrollable_frame, anchor='nw')
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        container.grid_columnconfigure(1, weight=0)  # scrollbar doesn't expand
-
-        # Canvas (left, fills available space)
+        # Canvas (where the content will be placed)
+        canvas = tk.Canvas(container, bg='#add8e6', highlightthickness=0)
         canvas.grid(row=0, column=0, sticky='nsew')
 
-        # Scrollbar (right, fixed width)
-        scrollbar.grid(row=0, column=1, sticky='ns')
+        # Scrollbar (right side, fixed width)
+        scrollbar = tk.Scrollbar(container, orient='vertical', command=canvas.yview)
+        scrollbar.grid(row=0, column=1, sticky='ns')  # This places the scrollbar in column 1
 
+        scrollable_frame = tk.Frame(canvas, bg='#add8e6')
+
+        # Create the window and keep reference to update its size
+        canvas_window = canvas.create_window((0, 0), window=scrollable_frame, anchor='n')
+
+        # Ensure scroll region is updated on content resize
+        def on_frame_configure(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+        # Ensure the scrollable_frame always matches canvas width
+        def on_canvas_configure(event):
+            canvas.itemconfig(canvas_window, width=event.width)
+
+        scrollable_frame.bind("<Configure>", on_frame_configure)
+        canvas.bind("<Configure>", on_canvas_configure)
+
+        # Link the canvas scroll to the scrollbar
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Function to enable mouse wheel scrolling
         def _on_mousewheel(event):
             canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
+        # Bind the mouse wheel event to scroll the canvas
         canvas.bind_all("<MouseWheel>", _on_mousewheel)
 
         from db_queries.show_listings import get_movies
         movies = get_movies()
         row_index = 0
+        
+        scrollable_frame.grid_columnconfigure(0, weight=1)
 
         for movie in movies:
             frame = tk.Frame(scrollable_frame, bg='white', bd=1, relief='solid', padx=12, pady=10)
@@ -242,7 +251,7 @@ class ListingsPage(BasePage):
             tk.Label(frame, text=f"Synopsis: {movie['description']}", font=('Arial', 10), wraplength=640, justify='left', bg='white').pack(anchor='w', pady=(4, 0))
 
             row_index += 1
-
+            
 class CancelPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
