@@ -842,7 +842,7 @@ class CreateNewUser(BasePage):
             self.entries['password'].get(),
             self.entries['forename'].get(),
             self.entries['surname'].get(),
-            user_type  # Pass as int
+            user_type 
         )
 
 
