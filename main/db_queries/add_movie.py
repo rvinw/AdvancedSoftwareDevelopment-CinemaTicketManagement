@@ -11,6 +11,8 @@ def add_movie_func(title, description, genre, age, rating, runtime, directors, c
 
     con.commit()
     con.close()
+    
+    return
 
 
 # Sample movie data structured for insertion
