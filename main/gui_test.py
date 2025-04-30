@@ -4,8 +4,7 @@ import datetime
 import tkinter.messagebox as messagebox
 from tkcalendar import DateEntry
 from datetime import date, timedelta
-from db_queries.show_listings import get_title, get_cinema_name , get_show_id
-from db_queries.return_seat_info import get_seat_matrix
+
 
 class CinemaBookingApp(tk.Tk):
     def __init__(self):
@@ -20,7 +19,7 @@ class CinemaBookingApp(tk.Tk):
         self.frames = {}
         self.logged_in_user = "Guest"
 
-        for F in (LoginPage, MainMenuPage, BookingPage, CancelPage, ListingsPage, AddCityPage, AddCinemaPage, AddMoviePage, ReportsPage, ManageScreeningPage, ListingSettingsPage, CreateNewUser):
+        for F in (LoginPage, MainMenuPage, BookingPage, CancelPage, ListingsPage, AddCityPage, AddCinemaPage, AddMoviePage, ReportsPage, ManageScreeningPage, ScreeningSettingsPage, CreateNewUser):
             page_name = F.__name__
             frame = F(parent=self, controller=self)
             self.frames[page_name] = frame
@@ -631,16 +630,81 @@ class ManageScreeningPage(BasePage):
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
         
         
-class ListingSettingsPage(BasePage):
+class ScreeningSettingsPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
 
         header_frame = tk.Frame(self, bg='#add8e6')
         header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
 
-        tk.Label(header_frame, text="Listing setting", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Label(header_frame, text="Screen setting", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
         tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
+
+        # Screen Name
+        tk.Label(self, text="Screen Name:", font=('Arial', 14), bg='#add8e6').grid(row=1, column=0, sticky='e', padx=10, pady=5)
+        self.screen_name_entry = ttk.Entry(self, font=('Arial', 14), width=30)
+        self.screen_name_entry.grid(row=1, column=1, padx=10, pady=5)
+
+        # Cinema ID
+        tk.Label(self, text="Cinema ID:", font=('Arial', 14), bg='#add8e6').grid(row=2, column=0, sticky='e', padx=10, pady=5)
+        self.cinema_id_entry = ttk.Entry(self, font=('Arial', 14), width=30)
+        self.cinema_id_entry.grid(row=2, column=1, padx=10, pady=5)
+
+        # Capacity
+        tk.Label(self, text="Capacity:", font=('Arial', 14), bg='#add8e6').grid(row=3, column=0, sticky='e', padx=10, pady=5)
+        self.capacity_entry = ttk.Entry(self, font=('Arial', 14), width=30)
+        self.capacity_entry.grid(row=3, column=1, padx=10, pady=5)
+
+        # Add Screen Button
+        tk.Button(self, text="Add Screen", font=('Arial', 14), command=self.add_screen).grid(row=4, column=0, columnspan=2, pady=15)
+
+        # Screen List
+        self.screen_list_label = tk.Label(self, text="Screens List", font=('Arial', 16), bg='#add8e6')
+        self.screen_list_label.grid(row=5, column=0, columnspan=2, pady=20)
+
+        # Screen Table
+        self.screen_table = ttk.Treeview(self, columns=("ScreenID", "CinemaID", "Screen Name", "Capacity"), show="headings")
+        self.screen_table.grid(row=6, column=0, columnspan=2, padx=10, pady=10)
+
+        # Defining columns
+        self.screen_table.heading("ScreenID", text="ScreenID")
+        self.screen_table.heading("CinemaID", text="CinemaID")
+        self.screen_table.heading("Screen Name", text="Screen Name")
+        self.screen_table.heading("Capacity", text="Capacity")
+
+        # Load screens
+        self.load_screens()
+
+    def add_screen(self):
+
+        from db_queries.add_screening import add_screen
+        
+        cinema_id = self.cinema_id_entry.get().strip()
+        screen_name = self.screen_name_entry.get().strip()
+        capacity = self.capacity_entry.get().strip()
+
+        if not cinema_id or not screen_name or not capacity:
+            messagebox.showerror("Input Error", "All fields must be filled.")
+            return
+
+        # Add screen
+        success, msg = add_screen(cinema_id, screen_name, capacity)
+        messagebox.showinfo("Result", msg)
+
+        if success:
+            self.load_screens()  # Reload the screen list after adding a new one
+
+    def load_screens(self):
+        from db_queries.add_screening import get_all_screens
+        # Clear the table first
+        for row in self.screen_table.get_children():
+            self.screen_table.delete(row)
+
+        # Get all screens and display them
+        screens = get_all_screens()
+        for screen in screens:
+            self.screen_table.insert("", "end", values=screen)
                
 class MainMenuPage(BasePage):
     def __init__(self, parent, controller):
@@ -712,7 +776,7 @@ class MainMenuPage(BasePage):
         screening_btn = tk.Button(self, text="Manage Screening", font=('Arial', 14),
                                   command=lambda: self.controller.show_frame("ManageScreeningPage"))
         settings_btn = tk.Button(self, text="Listing Settings", font=('Arial', 14),
-                                 command=lambda: self.controller.show_frame("ListingSettingsPage"))
+                                 command=lambda: self.controller.show_frame("ScreeningSettingsPage"))
         reports_btn = tk.Button(self, text="Reports", font=('Arial', 14),
                                 command=lambda: self.controller.show_frame("ReportsPage"))
         user_btn = tk.Button(self, text="User creation", font=('Arial', 14),
@@ -765,13 +829,22 @@ class CreateNewUser(BasePage):
     def create_user(self):
         from db_queries.add_user import add_user
 
+        try:
+            user_type = int(self.entries['user type'].get())
+            if user_type not in [1, 2, 3]:
+                raise ValueError("User type must be 1, 2, or 3.")
+        except ValueError as e:
+            messagebox.showerror("Input Error", str(e))
+            return
+
         add_user(
             self.entries['username'].get(),
+            self.entries['password'].get(),
             self.entries['forename'].get(),
             self.entries['surname'].get(),
-            self.entries['user type'].get(),
-            self.entries['password'].get()
-        )      
+            user_type 
+        )
+
 
 
 if __name__ == "__main__":
