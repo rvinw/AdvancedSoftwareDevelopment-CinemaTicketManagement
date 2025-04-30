@@ -149,25 +149,27 @@ class LoginPage(tk.Frame):
 class BookingPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        from db_queries.show_listings import get_title, get_cinema_name
-        movie_list = get_title()
-        cinema_name = get_cinema_name()
-        
-        header_frame = tk.Frame(self, bg='#add8e6')
-        header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
 
-        tk.Label(header_frame, text="Booking page", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
-        tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
-                  command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
+        self.controller = controller
+        self.selected_seats = set()
+        self.seat_buttons = {}
+        self.seat_matrix = []
+        self.seat_frame = None
 
-        tk.Label(self, text="Choose Film :", font=('Arial', 14)).grid(row=2, column=1, sticky='nsew')
-        self.movie_combo = ttk.Combobox(self, values=movie_list, font=('Arial'))
-        self.movie_combo.grid(row=2, column=2, sticky='nsew')
-        
-        tk.Label(self, text="Choose Cinema :", font=('Arial', 14)).grid(row=3, column=1, sticky='nsew')
-        self.cinema_combo = ttk.Combobox(self, values=cinema_name, font=('Arial'))
-        self.cinema_combo.grid(row=3, column=2, sticky='nsew')
-        
+        tk.Label(self, text="Making a Booking", font=('Arial', 18), bg='#add8e6').grid(
+            row=1, column=1, columnspan=4, pady=20, sticky='nsew'
+        )
+
+        tk.Button(self, text="Main Menu", font=('Arial', 12),
+                  command=lambda: controller.show_frame("MainMenuPage")).grid(
+            row=0, column=5, sticky='nsew'
+        )
+
+        tk.Label(self, text="Show ID:", font=('Arial', 14)).grid(row=2, column=1, sticky='nsew')
+        self.show_id_entry = tk.Entry(self, font=('Arial', 14), width=25)
+        self.show_id_entry.grid(row=2, column=2, sticky='nsew')
+
+        tk.Label(self, text="Choose Date:", font=('Arial', 14)).grid(row=3, column=1, sticky='nsew')
         today = date.today()
         max_date = today + timedelta(days=7)
         self.date_entry = DateEntry(self, font=('Arial'), mindate=today, maxdate=max_date, date_pattern='yyyy-mm-dd')
@@ -260,12 +262,12 @@ class BookingPage(BasePage):
                 messagebox.showwarning("No Seats", "Please select at least one seat.")
                 return
 
-            staff_id = self.controller.user_type
+            staff_id = self.controller.user_type  # Using user_type as staff ID
             seat_ids = list(self.selected_seats)
 
             add_booking(show_id, seat_ids, staff_id)
 
-            # Refresh view
+            # Refresh seat view
             self.seat_matrix = get_seat_matrix(show_id)
             self.create_seat_selector()
             self.selected_seats.clear()
@@ -276,6 +278,8 @@ class BookingPage(BasePage):
             messagebox.showerror("Error", "Invalid Show ID.")
         except Exception as e:
             messagebox.showerror("Error", f"Booking failed:\n{e}")
+
+
             
 class ListingsPage(BasePage):
     def __init__(self, parent, controller):
