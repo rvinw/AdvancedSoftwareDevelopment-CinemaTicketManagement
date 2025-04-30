@@ -32,3 +32,38 @@ def get_movies():
     except sqlite3.Error as e:
         print(f"Error fetching movies from the database: {e}")
         return []
+    
+
+import sqlite3
+
+def get_title():
+    conn = sqlite3.connect("HorizonCinema.db")
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT title
+        FROM movie
+    """)
+    
+    results = cursor.fetchall()
+    conn.close()
+
+    # Extract titles from list of tuples
+    titles = [row[0] for row in results]
+    return titles
+
+def get_cinema_name():
+    conn = sqlite3.connect("HorizonCinema.db")
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT cinemaName
+        FROM cinema
+    """)
+    
+    results = cursor.fetchall()
+    conn.close()
+
+    # Extract titles from list of tuples
+    cinema = [row[0] for row in results]
+    return cinema
