@@ -349,15 +349,22 @@ class AddCityPage(BasePage):
         tk.Label(self, text="Base Price:", font=('Arial', 14), bg='#add8e6').grid(row=3, column=1, sticky='e', padx=10, pady=10)
         self.new_base_price = ttk.Entry(self, font=('Arial', 14), width=25)
         self.new_base_price.grid(row=3, column=2, columnspan=2, sticky='w')
-        
+                    
         tk.Button(self, text="Add City", font=('Arial', 14), command=self.create_city).grid(row=4, column=2, columnspan=2, pady=20)     
 
     def create_city(self):
         from db_queries.add_city import add_city
-        
-        add_city(self.new_city_name.get(), self.new_base_price.get())
-        
-        self.controller.show_frame("MainMenuPage")
+
+        city_name = self.new_city_name.get().strip()
+        base_price = self.new_base_price.get().strip()
+
+        if city_name and base_price:
+            success = add_city(city_name, base_price)
+            if success:
+                self.new_city_name.delete(0, tk.END)
+                self.new_base_price.delete(0, tk.END)
+                self.controller.show_frame("MainMenuPage")
+
         
 class AddCinemaPage(BasePage):
     def __init__(self, parent, controller):
