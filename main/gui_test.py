@@ -248,18 +248,26 @@ class AddCinemaPage(BasePage):
 
 
 
+import tkinter as tk
+from tkinter import ttk
+from db_queries.add_movie import add_movie  # Ensure add_movie is imported correctly
+
 class AddListingPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
 
+        # Title of the page
         tk.Label(self, text="Add a Listing", font=('Arial', 18), bg='#add8e6').grid(
             row=1, column=1, columnspan=4, pady=20, sticky='nsew'
         )
+        
+        # Main menu button
         tk.Button(self, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).grid(
             row=1, column=5, sticky='nsew'
         )
 
+        # Labels for each field
         labels = [
             "Film Name", "Director", "Cast", "Synopsis",
             "Rating", "Genre", "Age Rating", "Runtime"
@@ -267,6 +275,7 @@ class AddListingPage(BasePage):
 
         self.entries = {}
 
+        # Create input fields for each label
         for i, label_text in enumerate(labels):
             row = i + 3
             tk.Label(self, text=label_text, font=('Arial', 14), bg='#add8e6').grid(
@@ -274,44 +283,69 @@ class AddListingPage(BasePage):
             )
 
             if label_text == "Age Rating":
+                # Age rating combobox
                 age_options = ["U", "PG", "12", "12A", "15", "18"]
                 age_combobox = ttk.Combobox(self, values=age_options, font=('Arial', 14), width=22, state="readonly")
                 age_combobox.current(0)
                 age_combobox.grid(row=row, column=3, sticky='w', pady=5)
                 self.entries["Age Rating"] = age_combobox
             else:
+                # Regular entry fields
                 entry = tk.Entry(self, font=('Arial', 14), width=25)
                 entry.grid(row=row, column=3, sticky='w', pady=5)
                 self.entries[label_text] = entry
 
+        # Create the submit button
         tk.Button(self, text="Create Listing", font=('Arial', 14),
                   command=self.create_listing).grid(
             row=12, column=2, columnspan=2, pady=20
         )
 
+        # Status label (added for error/success messages)
+        self.status_label = tk.Label(self, text="", font=('Arial', 10), fg='red')
+        self.status_label.grid(row=13, column=2, columnspan=2, sticky='w')
+
     def create_listing(self):
-        data = {key: field.get().strip() for key, field in self.entries.items()}
+        # Map display labels to DB column names
+        field_mapping = {
+            "Film Name": "title",
+            "Director": "directors",
+            "Cast": "cast",
+            "Synopsis": "description",
+            "Rating": "rating",
+            "Genre": "genre",
+            "Age Rating": "age",
+            "Runtime": "runtime"
+        }
 
-        # Basic validation
-        for field, value in data.items():
+        movie_data = {}
+
+        # Loop through each entry and collect the data
+        for label, entry in self.entries.items():
+            value = entry.get().strip()
             if not value:
-                messagebox.showerror("Input Error", f"'{field}' cannot be empty.")
+                self.status_label.config(text=f"'{label}' cannot be empty.", fg='red')
                 return
+            db_field = field_mapping[label]
+            movie_data[db_field] = value
 
-        if not data["Runtime"].isdigit():
-            messagebox.showerror("Input Error", "'Runtime' must be a number.")
+        try:
+            # Convert rating to float
+            movie_data["rating"] = float(movie_data["rating"])
+        except ValueError:
+            self.status_label.config(text="Rating must be a valid number.", fg='red')
             return
 
-        # If valid, continue
-        print("Creating listing with:", data)
+        try:
+            # Add movie to the database
+            add_movie(**movie_data)
+            self.status_label.config(text="Movie added successfully!", fg='green')
 
-        # Example: pass to DB function
-        # add_listing(data["Film Name"], data["Director"], data["Cast"],
-        #             data["Synopsis"], data["Rating"], data["Genre"],
-        #             data["Age Rating"], data["Runtime"])
-
-        messagebox.showinfo("Success", "Listing created successfully!")
-
+            # Clear form inputs after successful submission
+            for entry in self.entries.values():
+                entry.delete(0, tk.END)
+        except Exception as e:
+            self.status_label.config(text=f"Error: {str(e)}", fg='red')
 
 
 class ReportsPage(BasePage):
@@ -333,9 +367,9 @@ class ManageScreeningPage(BasePage):
 class ListingSettingsPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        tk.Label(self, text="Listing Settings", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, columnspan=4, pady=20, sticky='nsew')
-        tk.Button(self, text="Main Menu", font=('Arial', 12),
-                  command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5, sticky='nsew')
+        self.menu_label = tk.Label(self, text="Main Menu", font=('Arial', 18), bg='#add8e6')
+        self.menu_label.grid(row=1, column=2, columnspan=3, pady=20, sticky='nsew')
+
                
 class MainMenuPage(BasePage):
     def __init__(self, parent, controller):
