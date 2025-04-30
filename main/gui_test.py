@@ -4,7 +4,8 @@ import datetime
 import tkinter.messagebox as messagebox
 from tkcalendar import DateEntry
 from datetime import date, timedelta
-
+from db_queries.show_listings import get_title, get_cinema_name , get_show_id
+from db_queries.return_seat_info import get_seat_matrix
 
 class CinemaBookingApp(tk.Tk):
     def __init__(self):
@@ -148,32 +149,138 @@ class LoginPage(tk.Frame):
 class BookingPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        from db_queries.show_listings import get_title, get_cinema_name
-        movie_list = get_title()
-        cinema_name = get_cinema_name()
-        
-        header_frame = tk.Frame(self, bg='#add8e6')
-        header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
 
-        tk.Label(header_frame, text="Booking page", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
-        tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
-                  command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
+        self.controller = controller
+        self.selected_seats = set()
+        self.seat_buttons = {}
+        self.seat_matrix = []
+        self.seat_frame = None
 
-        tk.Label(self, text="Choose Film :", font=('Arial', 14)).grid(row=2, column=1, sticky='nsew')
-        self.movie_combo = ttk.Combobox(self, values=movie_list, font=('Arial'))
-        self.movie_combo.grid(row=2, column=2, sticky='nsew')
-        
-        tk.Label(self, text="Choose Cinema :", font=('Arial', 14)).grid(row=3, column=1, sticky='nsew')
-        self.cinema_combo = ttk.Combobox(self, values=cinema_name, font=('Arial'))
-        self.cinema_combo.grid(row=3, column=2, sticky='nsew')
-        
+        tk.Label(self, text="Making a Booking", font=('Arial', 18), bg='#add8e6').grid(
+            row=1, column=1, columnspan=4, pady=20, sticky='nsew'
+        )
+
+        tk.Button(self, text="Main Menu", font=('Arial', 12),
+                  command=lambda: controller.show_frame("MainMenuPage")).grid(
+            row=0, column=5, sticky='nsew'
+        )
+
+        tk.Label(self, text="Show ID:", font=('Arial', 14)).grid(row=2, column=1, sticky='nsew')
+        self.show_id_entry = tk.Entry(self, font=('Arial', 14), width=25)
+        self.show_id_entry.grid(row=2, column=2, sticky='nsew')
+
+        tk.Label(self, text="Choose Date:", font=('Arial', 14)).grid(row=3, column=1, sticky='nsew')
         today = date.today()
         max_date = today + timedelta(days=7)
-        tk.Label(self, text="Choose Date :", font=('Arial', 14)).grid(row=4, column=1, sticky='nsew')
         self.date_entry = DateEntry(self, font=('Arial'), mindate=today, maxdate=max_date, date_pattern='yyyy-mm-dd')
-        self.date_entry.grid(row=4, column=2, sticky='nsew')
+        self.date_entry.grid(row=3, column=2, sticky='nsew')
+
+        tk.Button(self, text="Load Seats", font=('Arial', 12),
+                  command=self.prepare_and_load_seats).grid(row=4, column=1, columnspan=2, pady=10)
+
+        tk.Button(self, text="Confirm Booking", font=('Arial', 12),
+                  command=self.confirm_booking).grid(row=5, column=1, columnspan=2, pady=10)
+
+    def prepare_and_load_seats(self):
+        try:
+            from db_queries.return_seat_info import get_seat_matrix
+
+            show_id = int(self.show_id_entry.get().strip())
+            self.seat_matrix = get_seat_matrix(show_id)
+            self.create_seat_selector()
+        except ValueError:
+            messagebox.showerror("Error", "Please enter a valid Show ID.")
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not load seat data:\n{e}")
+
+    def create_seat_selector(self):
+        if self.seat_frame:
+            self.seat_frame.destroy()
+
+        self.seat_frame = tk.Frame(self)
+        self.seat_frame.grid(row=6, column=0, columnspan=10, pady=20)
+
+        self.selected_seats.clear()
+        self.seat_buttons.clear()
+
+        for r, row in enumerate(self.seat_matrix):
+            for c, (seatID, seatType, available) in enumerate(row):
+                color = self.get_seat_color(seatType) if available else "gray"
+                state = "normal" if available else "disabled"
+
+                btn = tk.Button(
+                    self.seat_frame,
+                    text=seatID,
+                    width=4,
+                    bg=color,
+                    state=state,
+                    command=lambda sid=seatID, st=seatType: self.toggle_seat_selection(sid, st)
+                )
+                btn.grid(row=r, column=c, padx=2, pady=2)
+                self.seat_buttons[seatID] = (btn, seatType)
+
+        self.create_color_legend()
+
+    def toggle_seat_selection(self, seatID, seatType):
+        btn, _ = self.seat_buttons[seatID]
+        if seatID in self.selected_seats:
+            btn.config(bg=self.get_seat_color(seatType))
+            self.selected_seats.remove(seatID)
+        else:
+            btn.config(bg="red")
+            self.selected_seats.add(seatID)
+
+    def get_seat_color(self, seat_type):
+        return {
+            "lower": "lightblue",
+            "upper": "lightgreen",
+            "vip": "gold"
+        }.get(seat_type, "gray")
+
+    def create_color_legend(self):
+        legend_frame = tk.Frame(self, bg='#add8e6')
+        legend_frame.grid(row=7, column=1, columnspan=4, pady=(10, 20))
+
+        legend_items = [
+            ("Lower", "lightblue"),
+            ("Upper", "lightgreen"),
+            ("VIP", "gold"),
+            ("Booked", "gray"),
+            ("Selected", "red")
+        ]
+
+        for i, (label, color) in enumerate(legend_items):
+            tk.Label(legend_frame, text=label, bg=color, width=10, relief='groove').grid(row=0, column=i, padx=5)
+
+    def confirm_booking(self):
+        try:
+            from db_queries.add_booking import add_booking
+            from db_queries.return_seat_info import get_seat_matrix
+
+            show_id = int(self.show_id_entry.get().strip())
+            if not self.selected_seats:
+                messagebox.showwarning("No Seats", "Please select at least one seat.")
+                return
+
+            staff_id = self.controller.user_type  # Using user_type as staff ID
+            seat_ids = list(self.selected_seats)
+
+            add_booking(show_id, seat_ids, staff_id)
+
+            # Refresh seat view
+            self.seat_matrix = get_seat_matrix(show_id)
+            self.create_seat_selector()
+            self.selected_seats.clear()
+
+            messagebox.showinfo("Success", "Booking completed!")
+
+        except ValueError:
+            messagebox.showerror("Error", "Invalid Show ID.")
+        except Exception as e:
+            messagebox.showerror("Error", f"Booking failed:\n{e}")
 
 
+            
 class ListingsPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
