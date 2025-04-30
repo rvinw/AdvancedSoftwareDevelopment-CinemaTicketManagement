@@ -155,15 +155,13 @@ class BookingPage(BasePage):
         self.seat_buttons = {}
         self.seat_matrix = []
         self.seat_frame = None
+        
+        header_frame = tk.Frame(self, bg='#add8e6')
+        header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
 
-        tk.Label(self, text="Making a Booking", font=('Arial', 18), bg='#add8e6').grid(
-            row=1, column=1, columnspan=4, pady=20, sticky='nsew'
-        )
-
-        tk.Button(self, text="Main Menu", font=('Arial', 12),
-                  command=lambda: controller.show_frame("MainMenuPage")).grid(
-            row=0, column=5, sticky='nsew'
-        )
+        tk.Label(header_frame, text="Listing setting", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
+                  command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
 
         tk.Label(self, text="Show ID:", font=('Arial', 14)).grid(row=2, column=1, sticky='nsew')
         self.show_id_entry = tk.Entry(self, font=('Arial', 14), width=25)
@@ -734,19 +732,31 @@ class CreateNewUser(BasePage):
         tk.Label(header_frame, text="Listing setting", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
         tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
+        
         tk.Label(self, text="Add New User", font=('Arial', 18), bg='#add8e6').grid(row=3, column=0, columnspan=4, pady=20)
 
         labels = ["Username", "Forename", "Surname", "User Type", "Password"]
         self.entries = {}
 
         for i, label in enumerate(labels):
+            # Create labels for each field
             tk.Label(self, text=label + ":", font=('Arial', 14)).grid(row=i+2, column=0, sticky='e', padx=10, pady=5)
-            entry = ttk.Entry(self, font=('Arial', 14), width=30, show='*' if label == "Password" else '')
-            entry.grid(row=i+2, column=1, padx=5, pady=5)
+            
+            # Special handling for the "User Type" field to use Combobox instead of Entry
+            if label == "User Type":
+                # Create a Combobox for User Type with restricted values
+                entry = ttk.Combobox(self, font=('Arial', 14), width=30, values=[1, 2, 3], state="readonly")
+                entry.grid(row=i+2, column=1, padx=5, pady=5)
+            else:
+                # Create Entry fields for other labels
+                entry = ttk.Entry(self, font=('Arial', 14), width=30, show='*' if label == "Password" else '')
+                entry.grid(row=i+2, column=1, padx=5, pady=5)
+            
+            # Store the entry widget in a dictionary for later access
             self.entries[label.lower()] = entry
 
-        # Add Button
-        tk.Button(self, text="Create User", font=('Arial', 14), command=self.create_user).grid(row=8, column=0, columnspan=2, pady=20)
+            # Add Button
+            tk.Button(self, text="Create User", font=('Arial', 14), command=self.create_user).grid(row=8, column=0, columnspan=2, pady=20)
 
     def create_user(self):
         from db_queries.add_user import add_user
