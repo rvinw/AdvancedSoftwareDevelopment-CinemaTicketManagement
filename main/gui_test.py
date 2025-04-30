@@ -280,11 +280,6 @@ class AddCinemaPage(BasePage):
         self.controller.show_frame("MainMenuPage")
 
 
-
-import tkinter as tk
-from tkinter import ttk
-from db_queries.add_movie import add_movie  # Ensure add_movie is imported correctly
-
 class AddListingPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
