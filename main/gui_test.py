@@ -2,6 +2,9 @@ from tkinter import ttk
 import tkinter as tk
 import datetime
 import tkinter.messagebox as messagebox
+from tkcalendar import DateEntry
+from datetime import date, timedelta
+
 
 class CinemaBookingApp(tk.Tk):
     def __init__(self):
@@ -16,7 +19,7 @@ class CinemaBookingApp(tk.Tk):
         self.frames = {}
         self.logged_in_user = "Guest"
 
-        for F in (LoginPage, MainMenuPage, BookingPage, CancelPage, ListingsPage, AddCityPage, AddCinemaPage, AddListingPage, ReportsPage, ManageScreeningPage, ListingSettingsPage):
+        for F in (LoginPage, MainMenuPage, BookingPage, CancelPage, ListingsPage, AddCityPage, AddCinemaPage, AddMoviePage, ReportsPage, ManageScreeningPage, ListingSettingsPage):
             page_name = F.__name__
             frame = F(parent=self, controller=self)
             self.frames[page_name] = frame
@@ -145,9 +148,26 @@ class LoginPage(tk.Frame):
 class BookingPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
+        from db_queries.show_listings import get_title, get_cinema_name
+        movie_list = get_title()
+        cinema_name = get_cinema_name()
+        
         tk.Label(self, text="Making a Booking", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, columnspan=4, pady=20, sticky='nsew')
         tk.Button(self, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).grid(row=0, column=5, sticky='nsew')
+        tk.Label(self, text="Choose Film :", font=('Arial', 14)).grid(row=2, column=1, sticky='nsew')
+        self.movie_combo = ttk.Combobox(self, values=movie_list, font=('Arial'))
+        self.movie_combo.grid(row=2, column=2, sticky='nsew')
+        
+        tk.Label(self, text="Choose Cinema :", font=('Arial', 14)).grid(row=3, column=1, sticky='nsew')
+        self.cinema_combo = ttk.Combobox(self, values=cinema_name, font=('Arial'))
+        self.cinema_combo.grid(row=3, column=2, sticky='nsew')
+        
+        today = date.today()
+        max_date = today + timedelta(days=7)
+        tk.Label(self, text="Choose Date :", font=('Arial', 14)).grid(row=4, column=1, sticky='nsew')
+        self.date_entry = DateEntry(self, font=('Arial'), mindate=today, maxdate=max_date, date_pattern='yyyy-mm-dd')
+        self.date_entry.grid(row=4, column=2, sticky='nsew')
 
 
 class ListingsPage(BasePage):
@@ -329,12 +349,12 @@ class AddCinemaPage(BasePage):
         self.controller.show_frame("MainMenuPage")
 
 
-class AddListingPage(BasePage):
+class AddMoviePage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
 
         # Title of the page
-        tk.Label(self, text="Add a Listing", font=('Arial', 18), bg='#add8e6').grid(
+        tk.Label(self, text="Add a Movie", font=('Arial', 18), bg='#add8e6').grid(
             row=1, column=1, columnspan=4, pady=20, sticky='nsew'
         )
         
@@ -373,8 +393,8 @@ class AddListingPage(BasePage):
                 self.entries[label_text] = entry
 
         # Create the submit button
-        tk.Button(self, text="Create Listing", font=('Arial', 14),
-                  command=self.create_listing).grid(
+        tk.Button(self, text="Submit", font=('Arial', 14),
+                  command=self.create_movie).grid(
             row=12, column=2, columnspan=2, pady=20
         )
 
@@ -382,7 +402,7 @@ class AddListingPage(BasePage):
         self.status_label = tk.Label(self, text="", font=('Arial', 10), fg='red')
         self.status_label.grid(row=13, column=2, columnspan=2, sticky='w')
 
-    def create_listing(self):
+    def create_movie(self):
         from db_queries.add_movie import add_movie_func
         # Map display labels to DB column names
         field_mapping = {
@@ -501,8 +521,8 @@ class MainMenuPage(BasePage):
 
     def show_manager_widgets(self):
         # Connecting manager buttons to their respective pages
-        add_listing_btn = tk.Button(self, text="Add Listing", font=('Arial', 14),
-                                 command=lambda: self.controller.show_frame("AddListingPage"))
+        add_listing_btn = tk.Button(self, text="Add Movie", font=('Arial', 14),
+                                 command=lambda: self.controller.show_frame("AddMoviePage"))
         add_city_btn = tk.Button(self, text="Add City", font=('Arial', 14),
                                    command=lambda: self.controller.show_frame("AddCityPage"))        
         add_cinema_btn = tk.Button(self, text="Add Cinema", font=('Arial', 14),
