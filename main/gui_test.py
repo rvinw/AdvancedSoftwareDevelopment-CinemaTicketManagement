@@ -147,16 +147,73 @@ class BookingPage(BasePage):
         super().__init__(parent, controller)
         tk.Label(self, text="Making a Booking", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, columnspan=4, pady=20, sticky='nsew')
         tk.Button(self, text="Main Menu", font=('Arial', 12),
-                  command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5, sticky='nsew')
+                  command=lambda: controller.show_frame("MainMenuPage")).grid(row=0, column=5, sticky='nsew')
 
 
 class ListingsPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        tk.Label(self, text="Film Listings", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, columnspan=4, pady=20, sticky='nsew')
-        tk.Button(self, text="Main Menu", font=('Arial', 12),
-                  command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5, sticky='nsew')
 
+        # Make the whole page responsive
+        for i in range(6):
+            self.grid_columnconfigure(i, weight=1)
+        for i in range(10):
+            self.grid_rowconfigure(i, weight=1)
+
+        # header
+        header_frame = tk.Frame(self, bg='#add8e6')
+        header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
+
+        tk.Label(header_frame, text="Film Listings", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
+                  command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
+
+        #scroll container
+        container = tk.Frame(self, bg='white')
+        container.grid(row=2,rowspan=10, column=0, columnspan=12, sticky='nsew', padx=10, pady=10)
+
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
+
+        canvas = tk.Canvas(container, bg='white', highlightthickness=0)
+        scrollbar = tk.Scrollbar(container, orient='vertical', command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg='white')
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor='nw')
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.grid(row=0, column=0, sticky='nsew')
+        scrollbar.grid(row=0, column=1, sticky='ns')
+
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+        canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
+        from db_queries.show_listings import get_movies
+        movies = get_movies()
+        row_index = 0
+
+        for movie in movies:
+            frame = tk.Frame(scrollable_frame, bg='white', bd=1, relief='solid', padx=12, pady=10)
+            frame.grid(row=row_index, column=0, sticky='nsew', pady=8)
+
+            tk.Label(frame, text=movie["title"], font=('Arial', 14, 'bold'), bg='white').pack(anchor='w')
+            tk.Label(frame, text=f"Directors: {movie['directors']}", font=('Arial', 11), bg='white').pack(anchor='w', pady=(2, 0))
+
+            if movie.get("cast"):
+                tk.Label(frame, text=f"Cast: {movie['cast']}", font=('Arial', 10), wraplength=640, justify='left', bg='white').pack(anchor='w', pady=(2, 0))
+
+            tk.Label(frame, text=f"Genre: {movie['genre']}", font=('Arial', 10), bg='white').pack(anchor='w', pady=(2, 0))
+            tk.Label(frame, text=f"Rating: {movie['rating']} | Age: {movie['age']} | Runtime: {movie['runTime']}", font=('Arial', 10), bg='white').pack(anchor='w', pady=(2, 0))
+            tk.Label(frame, text=f"Synopsis: {movie['description']}", font=('Arial', 10), wraplength=640, justify='left', bg='white').pack(anchor='w', pady=(4, 0))
+
+            row_index += 1
 
 class CancelPage(BasePage):
     def __init__(self, parent, controller):
@@ -224,18 +281,26 @@ class AddCinemaPage(BasePage):
 
 
 
+import tkinter as tk
+from tkinter import ttk
+from db_queries.add_movie import add_movie  # Ensure add_movie is imported correctly
+
 class AddListingPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
 
+        # Title of the page
         tk.Label(self, text="Add a Listing", font=('Arial', 18), bg='#add8e6').grid(
             row=1, column=1, columnspan=4, pady=20, sticky='nsew'
         )
+        
+        # Main menu button
         tk.Button(self, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).grid(
             row=1, column=5, sticky='nsew'
         )
 
+        # Labels for each field
         labels = [
             "Film Name", "Director", "Cast", "Synopsis",
             "Rating", "Genre", "Age Rating", "Runtime"
@@ -243,6 +308,7 @@ class AddListingPage(BasePage):
 
         self.entries = {}
 
+        # Create input fields for each label
         for i, label_text in enumerate(labels):
             row = i + 3
             tk.Label(self, text=label_text, font=('Arial', 14), bg='#add8e6').grid(
@@ -250,44 +316,69 @@ class AddListingPage(BasePage):
             )
 
             if label_text == "Age Rating":
+                # Age rating combobox
                 age_options = ["U", "PG", "12", "12A", "15", "18"]
                 age_combobox = ttk.Combobox(self, values=age_options, font=('Arial', 14), width=22, state="readonly")
                 age_combobox.current(0)
                 age_combobox.grid(row=row, column=3, sticky='w', pady=5)
                 self.entries["Age Rating"] = age_combobox
             else:
+                # Regular entry fields
                 entry = tk.Entry(self, font=('Arial', 14), width=25)
                 entry.grid(row=row, column=3, sticky='w', pady=5)
                 self.entries[label_text] = entry
 
+        # Create the submit button
         tk.Button(self, text="Create Listing", font=('Arial', 14),
                   command=self.create_listing).grid(
             row=12, column=2, columnspan=2, pady=20
         )
 
+        # Status label (added for error/success messages)
+        self.status_label = tk.Label(self, text="", font=('Arial', 10), fg='red')
+        self.status_label.grid(row=13, column=2, columnspan=2, sticky='w')
+
     def create_listing(self):
-        data = {key: field.get().strip() for key, field in self.entries.items()}
+        # Map display labels to DB column names
+        field_mapping = {
+            "Film Name": "title",
+            "Director": "directors",
+            "Cast": "cast",
+            "Synopsis": "description",
+            "Rating": "rating",
+            "Genre": "genre",
+            "Age Rating": "age",
+            "Runtime": "runtime"
+        }
 
-        # Basic validation
-        for field, value in data.items():
+        movie_data = {}
+
+        # Loop through each entry and collect the data
+        for label, entry in self.entries.items():
+            value = entry.get().strip()
             if not value:
-                messagebox.showerror("Input Error", f"'{field}' cannot be empty.")
+                self.status_label.config(text=f"'{label}' cannot be empty.", fg='red')
                 return
+            db_field = field_mapping[label]
+            movie_data[db_field] = value
 
-        if not data["Runtime"].isdigit():
-            messagebox.showerror("Input Error", "'Runtime' must be a number.")
+        try:
+            # Convert rating to float
+            movie_data["rating"] = float(movie_data["rating"])
+        except ValueError:
+            self.status_label.config(text="Rating must be a valid number.", fg='red')
             return
 
-        # If valid, continue
-        print("Creating listing with:", data)
+        try:
+            # Add movie to the database
+            add_movie(**movie_data)
+            self.status_label.config(text="Movie added successfully!", fg='green')
 
-        # Example: pass to DB function
-        # add_listing(data["Film Name"], data["Director"], data["Cast"],
-        #             data["Synopsis"], data["Rating"], data["Genre"],
-        #             data["Age Rating"], data["Runtime"])
-
-        messagebox.showinfo("Success", "Listing created successfully!")
-
+            # Clear form inputs after successful submission
+            for entry in self.entries.values():
+                entry.delete(0, tk.END)
+        except Exception as e:
+            self.status_label.config(text=f"Error: {str(e)}", fg='red')
 
 
 class ReportsPage(BasePage):
@@ -309,9 +400,9 @@ class ManageScreeningPage(BasePage):
 class ListingSettingsPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        tk.Label(self, text="Listing Settings", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, columnspan=4, pady=20, sticky='nsew')
-        tk.Button(self, text="Main Menu", font=('Arial', 12),
-                  command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5, sticky='nsew')
+        self.menu_label = tk.Label(self, text="Main Menu", font=('Arial', 18), bg='#add8e6')
+        self.menu_label.grid(row=1, column=2, columnspan=3, pady=20, sticky='nsew')
+
                
 class MainMenuPage(BasePage):
     def __init__(self, parent, controller):
