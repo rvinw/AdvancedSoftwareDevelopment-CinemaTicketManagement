@@ -13,7 +13,7 @@ def validate_datetime(dt_string):
     except ValueError:
         return False, "Invalid date/time format. Use YYYY-MM-DD HH:MM"
 
-def add_cinema(movieID, showDateTime, screenID):
+def add_show(movieID, showDateTime, screenID):
     
     valid, result = validate_datetime(showDateTime)
     
@@ -38,4 +38,4 @@ screenID = 1
 
 
 
-add_cinema(movieID, showDateTime, screenID)
+add_show(movieID, showDateTime, screenID)
