@@ -152,9 +152,13 @@ class BookingPage(BasePage):
         movie_list = get_title()
         cinema_name = get_cinema_name()
         
-        tk.Label(self, text="Making a Booking", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, columnspan=4, pady=20, sticky='nsew')
-        tk.Button(self, text="Main Menu", font=('Arial', 12),
-                  command=lambda: controller.show_frame("MainMenuPage")).grid(row=0, column=5, sticky='nsew')
+        header_frame = tk.Frame(self, bg='#add8e6')
+        header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
+
+        tk.Label(header_frame, text="Booking page", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
+                  command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
+
         tk.Label(self, text="Choose Film :", font=('Arial', 14)).grid(row=2, column=1, sticky='nsew')
         self.movie_combo = ttk.Combobox(self, values=movie_list, font=('Arial'))
         self.movie_combo.grid(row=2, column=2, sticky='nsew')
@@ -174,13 +178,6 @@ class ListingsPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
 
-        # Make the whole page responsive
-        for i in range(6):
-            self.grid_columnconfigure(i, weight=1)
-        for i in range(10):
-            self.grid_rowconfigure(i, weight=1)
-
-        # header
         header_frame = tk.Frame(self, bg='#add8e6')
         header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
 
@@ -257,16 +254,11 @@ class CancelPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
         self.controller = controller
-        
-        for i in range(6):
-            self.grid_columnconfigure(i, weight=1)
-        for i in range(10):
-            self.grid_rowconfigure(i, weight=1)
 
-        # Header
         header_frame = tk.Frame(self, bg='#add8e6')
         header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
-        tk.Label(header_frame, text="Cancel booking", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+
+        tk.Label(header_frame, text="Film Listings", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
         tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
 
@@ -343,8 +335,12 @@ class CancelPage(BasePage):
 class AddCityPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        tk.Label(self, text="Add a City", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, columnspan=4, pady=20, sticky='nsew')
-        tk.Button(self, text="Main Menu", font=('Arial', 12), command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5, sticky='nsew')
+        header_frame = tk.Frame(self, bg='#add8e6')
+        header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
+
+        tk.Label(header_frame, text="Add a city", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
+                  command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
         
         tk.Label(self, text="City Name:", font=('Arial', 14), bg='#add8e6').grid(row=2, column=1, sticky='e', padx=10, pady=10)
         self.new_city_name = ttk.Entry(self, font=('Arial', 14), width=25)
@@ -354,7 +350,7 @@ class AddCityPage(BasePage):
         self.new_base_price = ttk.Entry(self, font=('Arial', 14), width=25)
         self.new_base_price.grid(row=3, column=2, columnspan=2, sticky='w')
         
-        tk.Button(self, text="Create City", font=('Arial', 14), command=self.create_city).grid(row=4, column=2, columnspan=2, pady=20)     
+        tk.Button(self, text="Add City", font=('Arial', 14), command=self.create_city).grid(row=4, column=2, columnspan=2, pady=20)     
 
     def create_city(self):
         from db_queries.add_city import add_city
@@ -367,8 +363,12 @@ class AddCinemaPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
         
-        tk.Label(self, text="Add a Cinema", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, columnspan=4, pady=20, sticky='nsew')
-        tk.Button(self, text="Main Menu", font=('Arial', 12), command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5, sticky='nsew')
+        header_frame = tk.Frame(self, bg='#add8e6')
+        header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
+
+        tk.Label(header_frame, text="Add a cinema", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
+                  command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
         
         tk.Label(self, text="City Name :", font=('Arial', 14), bg='#add8e6').grid(row=2, column=1, sticky='e', padx=10, pady=10)
         self.new_city_name = ttk.Entry(self, font=('Arial', 14), width=25)
@@ -402,16 +402,12 @@ class AddMoviePage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
 
-        # Title of the page
-        tk.Label(self, text="Add a Movie", font=('Arial', 18), bg='#add8e6').grid(
-            row=1, column=1, columnspan=4, pady=20, sticky='nsew'
-        )
-        
-        # Main menu button
-        tk.Button(self, text="Main Menu", font=('Arial', 12),
-                  command=lambda: controller.show_frame("MainMenuPage")).grid(
-            row=1, column=5, sticky='nsew'
-        )
+        header_frame = tk.Frame(self, bg='#add8e6')
+        header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
+
+        tk.Label(header_frame, text="Add a movie", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
+                  command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
 
         # Labels for each field
         labels = [
@@ -498,25 +494,37 @@ class AddMoviePage(BasePage):
 class ReportsPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        tk.Label(self, text="Reports Page", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, columnspan=4, pady=20, sticky='nsew')
-        tk.Button(self, text="Main Menu", font=('Arial', 12),
-                  command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5, sticky='nsew')
+
+        header_frame = tk.Frame(self, bg='#add8e6')
+        header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
+
+        tk.Label(header_frame, text="Reports page", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
+                  command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
  
 
 class ManageScreeningPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        tk.Label(self, text="Cancel a Booking", font=('Arial', 18), bg='#add8e6').grid(row=1, column=1, columnspan=4, pady=20, sticky='nsew')
-        tk.Button(self, text="Main Menu", font=('Arial', 12),
-                  command=lambda: controller.show_frame("MainMenuPage")).grid(row=1, column=5, sticky='nsew')
+
+        header_frame = tk.Frame(self, bg='#add8e6')
+        header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
+
+        tk.Label(header_frame, text="Manage screening", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
+                  command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
         
         
 class ListingSettingsPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        self.menu_label = tk.Label(self, text="Main Menu", font=('Arial', 18), bg='#add8e6')
-        self.menu_label.grid(row=1, column=2, columnspan=3, pady=20, sticky='nsew')
 
+        header_frame = tk.Frame(self, bg='#add8e6')
+        header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
+
+        tk.Label(header_frame, text="Listing setting", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
+                  command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
                
 class MainMenuPage(BasePage):
     def __init__(self, parent, controller):
