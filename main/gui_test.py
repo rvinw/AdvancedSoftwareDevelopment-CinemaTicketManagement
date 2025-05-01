@@ -792,12 +792,6 @@ class MainMenuPage(BasePage):
 
         self.admin_widgets.extend([screening_btn, settings_btn, reports_btn, user_btn])
 
-import tkinter as tk
-from tkinter import ttk, messagebox
-from tkcalendar import DateEntry
-from datetime import date, timedelta
-from db_queries.add_user import add_user  # ensure this import works
-
 class CreateNewUser(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
@@ -847,9 +841,6 @@ class CreateNewUser(BasePage):
             user_type,
             self.entries['cinema_id'].get()
         )
-
-
-
 
 if __name__ == "__main__":
     app = CinemaBookingApp()
