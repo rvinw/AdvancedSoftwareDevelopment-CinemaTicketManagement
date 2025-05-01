@@ -69,6 +69,9 @@ def add_booking(showID, seatIDs, staffID):
         next_booking_id = 1 if result[0] is None else result[0] + 1
 
         successful_inserts = 0
+        booked_seats = []
+        total_price = 0.0
+        ticket_start_id = next_booking_id
 
         for seat_id in seatIDs:
             # Check if seat already booked
@@ -100,12 +103,26 @@ def add_booking(showID, seatIDs, staffID):
                 INSERT INTO booking (bookingID, showID, seatID, price, staffID)
                 VALUES (?, ?, ?, ?, ?)
             ''', (next_booking_id, showID, seat_id, price, staffID))
+
+            total_price += price
+            booked_seats.append(seat_id)
             next_booking_id += 1
             successful_inserts += 1
 
         if successful_inserts > 0:
             conn.commit()
-            messagebox.showinfo("Success", "Booking added successfully.")
+
+            # Show ticket receipt in a messagebox
+            ticket_text = "🎟️  Horizon Cinemas Ticket\n"
+            ticket_text += "=============================\n"
+            ticket_text += f"Booking ID: {ticket_start_id} to {next_booking_id - 1}\n"
+            ticket_text += f"Show ID: {showID}\n"
+            ticket_text += "Seat IDs: " + ", ".join(map(str, booked_seats)) + "\n"
+            ticket_text += f"Total Price: £{round(total_price, 2)}\n"
+            ticket_text += "=============================\n"
+            ticket_text += "Thank you for booking with Horizon Cinemas!"
+
+            messagebox.showinfo("Booking Confirmation", ticket_text)
         else:
             messagebox.showwarning("Notice", "No seats were booked. They may already be taken.")
 
