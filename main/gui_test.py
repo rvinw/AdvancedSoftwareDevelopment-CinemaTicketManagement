@@ -4,6 +4,7 @@ import datetime
 import tkinter.messagebox as messagebox
 from tkcalendar import DateEntry
 from datetime import date, timedelta
+import sqlite3
 
 
 class CinemaBookingApp(tk.Tk):
@@ -623,6 +624,16 @@ class ReportsPage(BasePage):
 class ManageScreeningPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
+        self.controller = controller
+        self.entries = {}
+
+        self.timeslot_mapping = {
+            1: "12:00:00",
+            2: "15:30:00",
+            3: "19:00:00"
+        }
+
+        self.movies = self.get_movies()
 
         header_frame = tk.Frame(self, bg='#add8e6')
         header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
@@ -630,8 +641,74 @@ class ManageScreeningPage(BasePage):
         tk.Label(header_frame, text="Manage screening", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
         tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
-        
-        
+
+        tk.Label(self, text="Cinema ID:", font=('Arial', 14)).grid(row=2, column=0, sticky='e', padx=10, pady=5)
+        self.cinema_id_entry = ttk.Entry(self, font=('Arial', 14), width=30)
+        self.cinema_id_entry.grid(row=2, column=1, padx=5, pady=5)
+
+        tk.Label(self, text="Screen (1–6):", font=('Arial', 14)).grid(row=3, column=0, sticky='e', padx=10, pady=5)
+        self.screen_combo = ttk.Combobox(self, font=('Arial', 14), values=list(range(1, 7)), state="readonly", width=28)
+        self.screen_combo.grid(row=3, column=1, padx=5, pady=5)
+
+        tk.Label(self, text="Select Date:", font=('Arial', 14)).grid(row=4, column=0, sticky='e', padx=10, pady=5)
+        self.date_picker = DateEntry(self, font=('Arial', 14), width=28, mindate=date.today(), date_pattern='yyyy-mm-dd')
+        self.date_picker.grid(row=4, column=1, padx=5, pady=5)
+
+        tk.Label(self, text="Timeslot (1–3):", font=('Arial', 14)).grid(row=5, column=0, sticky='e', padx=10, pady=5)
+        self.timeslot_combo = ttk.Combobox(self, font=('Arial', 14), values=[1, 2, 3], state="readonly", width=28)
+        self.timeslot_combo.grid(row=5, column=1, padx=5, pady=5)
+
+        tk.Label(self, text="Movie:", font=('Arial', 14)).grid(row=6, column=0, sticky='e', padx=10, pady=5)
+        self.movie_combo = ttk.Combobox(self, font=('Arial', 14), values=[m[1] for m in self.movies], state="readonly", width=28)
+        self.movie_combo.grid(row=6, column=1, padx=5, pady=5)
+
+        tk.Button(self, text="Add Show", font=('Arial', 14),
+                  command=self.add_screening).grid(row=7, column=0, columnspan=2, pady=20)
+
+    def get_movies(self):
+        try:
+            con = sqlite3.connect("HorizonCinema.db")
+            cur = con.cursor()
+            cur.execute("SELECT movieID, movieTitle FROM movie")
+            movies = cur.fetchall()
+            con.close()
+            return movies
+        except Exception as e:
+            messagebox.showerror("Database Error", f"Failed to load movies: {e}")
+            return []
+
+    def add_screening(self):
+        from db_queries.add_show import add_show
+
+        try:
+            cinema_id = int(self.cinema_id_entry.get().strip())
+            screen_number = int(self.screen_combo.get())
+            timeslot = int(self.timeslot_combo.get())
+            date_obj = self.date_picker.get_date()
+            movie_title = self.movie_combo.get()
+
+            movie_id = next((m[0] for m in self.movies if m[1] == movie_title), None)
+            if movie_id is None:
+                messagebox.showerror("Error", "Invalid movie selected.")
+                return
+
+            screen_id = get_screen_id(cinema_id, screen_number)
+            if screen_id is None:
+                messagebox.showerror("Error", f"Screen {screen_number} not found for cinema {cinema_id}.")
+                return
+
+            show_time = self.timeslot_mapping[timeslot]
+            show_datetime = f"{date_obj.strftime('%Y-%m-%d')} {show_time}"
+
+            success, msg = add_show(movie_id, screen_id, show_datetime)
+            if success:
+                messagebox.showinfo("Success", msg)
+            else:
+                messagebox.showerror("Error", msg)
+
+        except ValueError:
+            messagebox.showerror("Input Error", "Please fill in all fields correctly.")
+                  
 class ScreeningSettingsPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
