@@ -288,11 +288,8 @@ class BookingPage(BasePage):
         except Exception as e:
             messagebox.showerror("Error", f"Booking failed:\n{e}")
             
-<<<<<<< HEAD
         tk.Label(self, text="")
         
-=======
->>>>>>> ba3f282f9a70c5bae1fe60db1920cb574264f419
 class ListingsPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
@@ -377,7 +374,7 @@ class CancelPage(BasePage):
         header_frame = tk.Frame(self, bg='#add8e6')
         header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
 
-        tk.Label(header_frame, text="Cancel a Ticket", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Label(header_frame, text="Cancel a ticket", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
         tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
 
