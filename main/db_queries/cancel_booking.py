@@ -1,6 +1,6 @@
 import sqlite3
 from tkinter import messagebox
-
+from datetime import datetime
 
 def get_booking_info(bookingID):
     try:
@@ -18,18 +18,36 @@ def cancel_booking(bookingID):
         conn = sqlite3.connect("HorizonCinema.db")
         cur = conn.cursor()
 
-        # Check booking exists and isn't cancelled
-        cur.execute("SELECT * FROM booking WHERE bookingID = ? AND cancelled = 0", (bookingID,))
-        row = cur.fetchone()
-        if not row:
+        # Check booking exists and isn't already cancelled
+        cur.execute("SELECT showID, price FROM booking WHERE bookingID = ? AND cancelled = 0", (bookingID,))
+        booking = cur.fetchone()
+        if not booking:
             messagebox.showerror("Error", f"No active booking found with ID {bookingID}.")
             conn.close()
             return
 
-        # Refund (optional — if you care about refund amount)
-        cur.execute("SELECT SUM(price) FROM booking WHERE bookingID = ?", (bookingID,))
-        refund_row = cur.fetchone()
-        refund_amount = refund_row[0] if refund_row and refund_row[0] else 0.0
+        showID, price = booking
+
+        # Get showDateTime from 'show' table
+        cur.execute("SELECT showDateTime FROM show WHERE showID = ?", (showID,))
+        show_row = cur.fetchone()
+        if not show_row:
+            messagebox.showerror("Error", "Show information not found.")
+            conn.close()
+            return
+
+        # Parse show date and time (assuming format 'YYYY-MM-DD HH:MM')
+        show_datetime = datetime.strptime(show_row[0], "%Y-%m-%d %H:%M")
+        now = datetime.now()
+
+        # Check if we are on the same day as the show and disallow cancellation on the same day
+        if now.date() >= show_datetime.date():
+            messagebox.showerror("Cancellation Not Allowed", "Tickets cannot be cancelled on the day of the show or after.")
+            conn.close()
+            return
+
+        # Apply 50% refund if cancelled at least one day before
+        refund_amount = price * 0.5
 
         # Mark as cancelled
         cur.execute("UPDATE booking SET cancelled = 1 WHERE bookingID = ?", (bookingID,))

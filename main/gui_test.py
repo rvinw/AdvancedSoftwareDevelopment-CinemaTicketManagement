@@ -1,11 +1,9 @@
 from tkinter import ttk
 import tkinter as tk
 import datetime
-from tkinter import simpledialog
 import tkinter.messagebox as messagebox
 from tkcalendar import DateEntry
 from datetime import date, timedelta
-import sqlite3
 
 
 class CinemaBookingApp(tk.Tk):
@@ -160,11 +158,11 @@ class BookingPage(BasePage):
         self.seat_buttons = {}
         self.seat_matrix = []
         self.seat_frame = None
-
+        
         header_frame = tk.Frame(self, bg='#add8e6')
         header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
 
-        tk.Label(header_frame, text="Book a ticket", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Label(header_frame, text="Listing setting", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
         tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
 
@@ -208,11 +206,6 @@ class BookingPage(BasePage):
 
         for r, row in enumerate(self.seat_matrix):
             for c, (seatID, seatType, available) in enumerate(row):
-                try:
-                    numeric_seat_id = seatID  
-                except ValueError:
-                    continue  
-
                 color = self.get_seat_color(seatType) if available else "gray"
                 state = "normal" if available else "disabled"
 
@@ -222,10 +215,10 @@ class BookingPage(BasePage):
                     width=4,
                     bg=color,
                     state=state,
-                    command=lambda sid=numeric_seat_id, st=seatType: self.toggle_seat_selection(sid, st)
+                    command=lambda sid=seatID, st=seatType: self.toggle_seat_selection(sid, st)
                 )
                 btn.grid(row=r, column=c, padx=2, pady=2)
-                self.seat_buttons[numeric_seat_id] = (btn, seatType)
+                self.seat_buttons[seatID] = (btn, seatType)
 
         self.create_color_legend()
 
@@ -270,11 +263,12 @@ class BookingPage(BasePage):
                 messagebox.showwarning("No Seats", "Please select at least one seat.")
                 return
 
-            staff_id = self.controller.user_type
+            staff_id = self.controller.user_type  # Using user_type as staff ID
             seat_ids = list(self.selected_seats)
 
             add_booking(show_id, seat_ids, staff_id)
 
+            # Refresh seat view
             self.seat_matrix = get_seat_matrix(show_id)
             self.create_seat_selector()
             self.selected_seats.clear()
@@ -285,6 +279,8 @@ class BookingPage(BasePage):
             messagebox.showerror("Error", "Invalid Show ID.")
         except Exception as e:
             messagebox.showerror("Error", f"Booking failed:\n{e}")
+
+
             
 class ListingsPage(BasePage):
     def __init__(self, parent, controller):
@@ -370,7 +366,7 @@ class CancelPage(BasePage):
         header_frame = tk.Frame(self, bg='#add8e6')
         header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
 
-        tk.Label(header_frame, text="Cancel a Ticket", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Label(header_frame, text="Film Listings", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
         tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
 
@@ -620,156 +616,11 @@ class ReportsPage(BasePage):
         tk.Label(header_frame, text="Reports page", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
         tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
+ 
 
-        button_frame = tk.Frame(self)
-        button_frame.grid(row=2, column=0, pady=20, padx=10)
-
-        reports = [
-            ("Bookings per Listing", self.report_bookings_per_listing),
-            ("Monthly Revenue per Cinema", self.report_monthly_revenue_per_cinema),
-            ("Top Revenue Generating Film", self.report_top_revenue_film),
-            ("Monthly Staff Bookings (Sorted)", self.report_monthly_staff_bookings),
-        ]
-
-        for i, (label, command) in enumerate(reports):
-            tk.Button(button_frame, text=label, font=('Arial', 12), width=30, command=command).grid(row=i, column=0, pady=5)
-
-    def get_month_year_input(self):
-        month = simpledialog.askinteger("Input", "Enter month (1-12):")
-        year = simpledialog.askinteger("Input", "Enter year (e.g., 2025):")
-        if not (month and year):
-            return None, None
-        return f"{year}-{month:02d}", year  # formatted month-year string for SQL
-    
-    def report_bookings_per_listing(self):
-        con = sqlite3.connect("HorizonCinema.db")
-        cur = con.cursor()
-
-        cur.execute('''
-            SELECT show.showID, movie.title, COUNT(*) AS num_bookings
-            FROM booking
-            JOIN show ON booking.showID = show.showID
-            JOIN movie ON show.movieID = movie.movieID
-            WHERE cancelled = 0
-            GROUP BY show.showID
-            ORDER BY num_bookings DESC
-        ''')
-        rows = cur.fetchall()
-        con.close()
-
-        self.display_report_window("Bookings per Listing", rows, ["Show ID", "Movie Title", "Bookings"])
-
-    def report_monthly_revenue_per_cinema(self):
-        month_year, _ = self.get_month_year_input()
-        if not month_year:
-            return
-
-        con = sqlite3.connect("HorizonCinema.db")
-        cur = con.cursor()
-
-        cur.execute('''
-            SELECT cinema.cinemaName, 
-                strftime('%Y-%m', show.showDateTime) AS month, 
-                SUM(booking.price) AS revenue
-            FROM booking
-            JOIN show ON booking.showID = show.showID
-            JOIN screen ON show.screenID = screen.screenID
-            JOIN cinema ON screen.cinemaID = cinema.cinemaID
-            WHERE cancelled = 0
-            AND strftime('%Y-%m', show.showDateTime) = ?
-            GROUP BY cinema.cinemaName
-            ORDER BY revenue DESC
-        ''', (month_year,))
-        rows = cur.fetchall()
-        con.close()
-
-        self.display_report_window(f"Revenue for {month_year}", rows, ["Cinema", "Month", "Revenue (£)"])
-
-    def report_top_revenue_film(self):
-        con = sqlite3.connect("HorizonCinema.db")
-        cur = con.cursor()
-
-        cur.execute('''
-            SELECT movie.title, SUM(booking.price) AS total_revenue
-            FROM booking
-            JOIN show ON booking.showID = show.showID
-            JOIN movie ON show.movieID = movie.movieID
-            WHERE cancelled = 0
-            GROUP BY movie.title
-            ORDER BY total_revenue DESC
-            LIMIT 1
-        ''')
-        rows = cur.fetchall()
-        con.close()
-
-        self.display_report_window("Top Revenue Generating Film", rows, ["Movie Title", "Total Revenue (£)"])
-
-    def report_monthly_staff_bookings(self):
-        month_year, _ = self.get_month_year_input()
-        if not month_year:
-            return
-
-        con = sqlite3.connect("HorizonCinema.db")
-        cur = con.cursor()
-
-        try:
-            cur.execute('''
-                SELECT s.userForename || ' ' || s.userSurname AS staff_name,
-                    strftime('%Y-%m', sh.showDateTime) AS month,
-                    COUNT(*) AS bookings
-                FROM booking b
-                JOIN show sh ON b.showID = sh.showID
-                JOIN staff s ON b.staffID = s.userID
-                WHERE b.cancelled = 0
-                AND strftime('%Y-%m', sh.showDateTime) = ?
-                GROUP BY staff_name
-                ORDER BY bookings DESC
-            ''', (month_year,))
-            rows = cur.fetchall()
-        except sqlite3.OperationalError:
-            rows = [("Missing staffID in booking table", "", "")]
-
-        con.close()
-        self.display_report_window(f"Staff Bookings for {month_year}", rows, ["Staff Name", "Month", "Bookings"])
-
-    def display_report_window(self, title, rows, headers):
-        window = tk.Toplevel(self)
-        window.title(title)
-        window.geometry("700x400")
-
-        canvas = tk.Canvas(window)
-        scrollbar = tk.Scrollbar(window, orient="vertical", command=canvas.yview)
-        scroll_frame = tk.Frame(canvas)
-
-        scroll_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-        canvas.create_window((0, 0), window=scroll_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
-
-        # Headers
-        for col, header in enumerate(headers):
-            tk.Label(scroll_frame, text=header, font=('Arial', 12, 'bold'), borderwidth=2, relief='groove').grid(row=0, column=col, sticky='nsew', padx=2, pady=2)
-
-        # Rows
-        for row_idx, row in enumerate(rows, start=1):
-            for col_idx, val in enumerate(row):
-                tk.Label(scroll_frame, text=str(val), font=('Arial', 11), borderwidth=1, relief='ridge').grid(row=row_idx, column=col_idx, sticky='nsew', padx=1, pady=1)
-    
 class ManageScreeningPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        self.controller = controller
-        self.entries = {}
-
-        self.timeslot_mapping = {
-            1: "12:00:00",
-            2: "15:30:00",
-            3: "19:00:00"
-        }
-
-        self.movies = self.get_movies()
 
         header_frame = tk.Frame(self, bg='#add8e6')
         header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
@@ -777,85 +628,8 @@ class ManageScreeningPage(BasePage):
         tk.Label(header_frame, text="Manage screening", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
         tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
-
-        tk.Label(self, text="Cinema ID:", font=('Arial', 14)).grid(row=2, column=0, sticky='e', padx=10, pady=5)
-        self.cinema_id_entry = ttk.Entry(self, font=('Arial', 14), width=30)
-        self.cinema_id_entry.grid(row=2, column=1, padx=5, pady=5)
-
-        tk.Label(self, text="Screen (1–6):", font=('Arial', 14)).grid(row=3, column=0, sticky='e', padx=10, pady=5)
-        self.screen_combo = ttk.Combobox(self, font=('Arial', 14), values=list(range(1, 7)), state="readonly", width=28)
-        self.screen_combo.grid(row=3, column=1, padx=5, pady=5)
-
-        tk.Label(self, text="Select Date:", font=('Arial', 14)).grid(row=4, column=0, sticky='e', padx=10, pady=5)
-        self.date_picker = DateEntry(self, font=('Arial', 14), width=28, mindate=date.today(), date_pattern='yyyy-mm-dd')
-        self.date_picker.grid(row=4, column=1, padx=5, pady=5)
-
-        tk.Label(self, text="Timeslot (1–3):", font=('Arial', 14)).grid(row=5, column=0, sticky='e', padx=10, pady=5)
-        self.timeslot_combo = ttk.Combobox(self, font=('Arial', 14), values=[1, 2, 3], state="readonly", width=28)
-        self.timeslot_combo.grid(row=5, column=1, padx=5, pady=5)
-
-        tk.Label(self, text="Movie:", font=('Arial', 14)).grid(row=6, column=0, sticky='e', padx=10, pady=5)
-        self.movie_combo = ttk.Combobox(self, font=('Arial', 14), values=[m[1] for m in self.movies], state="readonly", width=28)
-        self.movie_combo.grid(row=6, column=1, padx=5, pady=5)
-
-        tk.Button(self, text="Add Show", font=('Arial', 14),
-                  command=self.add_screening).grid(row=7, column=0, columnspan=2, pady=20)
-
-    def get_movies(self):
-        try:
-            con = sqlite3.connect("HorizonCinema.db")
-            cur = con.cursor()
-            cur.execute("SELECT movieID, title FROM movie")
-            movies = cur.fetchall()
-            con.close()
-            return movies
-        except Exception as e:
-            messagebox.showerror("Database Error", f"Failed to load movies: {e}")
-            return []
-
-    def add_screening(self):
-        from db_queries.add_show import add_show, validate_datetime
-
-        def get_screen_id(cinema_id, screen_number):
-            con = sqlite3.connect("HorizonCinema.db")
-            cur = con.cursor()
-            cur.execute('''
-                SELECT screenID FROM screen
-                WHERE cinemaID = ? AND screenName = ?
-            ''', (cinema_id, screen_number))
-            result = cur.fetchone()
-            con.close()
-            return result[0] if result else None
-
-        try:
-            cinema_id = int(self.cinema_id_entry.get().strip())
-            screen_number = int(self.screen_combo.get())
-            timeslot = int(self.timeslot_combo.get())
-            date_obj = self.date_picker.get_date()
-            movie_title = self.movie_combo.get()
-
-            movie_id = next((m[0] for m in self.movies if m[1] == movie_title), None)
-            if movie_id is None:
-                messagebox.showerror("Error", "Invalid movie selected.")
-                return
-
-            screen_id = get_screen_id(cinema_id, screen_number)
-            if screen_id is None:
-                messagebox.showerror("Error", f"Screen {screen_number} not found for cinema {cinema_id}.")
-                return
-
-            show_time = self.timeslot_mapping[timeslot]
-            show_datetime = f"{date_obj.strftime('%Y-%m-%d')} {show_time[:5]}"
-
-            add_show(movie_id, show_datetime, screen_id)
-
-            messagebox.showinfo("Success", "Screening added.")
-
-        except ValueError:
-            messagebox.showerror("Input Error", "Please fill in all fields correctly.")
-
-
-                  
+        
+        
 class ScreeningSettingsPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
@@ -1001,7 +775,7 @@ class MainMenuPage(BasePage):
         # Connecting admin buttons to their respective pages
         screening_btn = tk.Button(self, text="Manage Screening", font=('Arial', 14),
                                   command=lambda: self.controller.show_frame("ManageScreeningPage"))
-        settings_btn = tk.Button(self, text="Screen Settings", font=('Arial', 14),
+        settings_btn = tk.Button(self, text="Listing Settings", font=('Arial', 14),
                                  command=lambda: self.controller.show_frame("ScreeningSettingsPage"))
         reports_btn = tk.Button(self, text="Reports", font=('Arial', 14),
                                 command=lambda: self.controller.show_frame("ReportsPage"))
@@ -1019,41 +793,44 @@ class MainMenuPage(BasePage):
 class CreateNewUser(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        from db_queries.add_user import add_user
-        self.controller = controller
-        self.entries = {}
 
         header_frame = tk.Frame(self, bg='#add8e6')
         header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
 
-        tk.Label(header_frame, text="Create a User", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Label(header_frame, text="Listing setting", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
         tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
-
+        
         tk.Label(self, text="Add New User", font=('Arial', 18), bg='#add8e6').grid(row=3, column=0, columnspan=4, pady=20)
 
-        labels = ["Username", "Forename", "Surname", "User Type", "Password", "Cinema ID"]
-        keys = ["username", "forename", "surname", "user_type", "password", "cinema_id"]
+        labels = ["Username", "Forename", "Surname", "User Type", "Password"]
+        self.entries = {}
 
-        for i, (label, key) in enumerate(zip(labels, keys)):
-            tk.Label(self, text=label + ":", font=('Arial', 14)).grid(row=i+4, column=0, sticky='e', padx=10, pady=5)
-
+        for i, label in enumerate(labels):
+            # Create labels for each field
+            tk.Label(self, text=label + ":", font=('Arial', 14)).grid(row=i+2, column=0, sticky='e', padx=10, pady=5)
+            
+            # Special handling for the "User Type" field to use Combobox instead of Entry
             if label == "User Type":
+                # Create a Combobox for User Type with restricted values
                 entry = ttk.Combobox(self, font=('Arial', 14), width=30, values=[1, 2, 3], state="readonly")
+                entry.grid(row=i+2, column=1, padx=5, pady=5)
             else:
+                # Create Entry fields for other labels
                 entry = ttk.Entry(self, font=('Arial', 14), width=30, show='*' if label == "Password" else '')
+                entry.grid(row=i+2, column=1, padx=5, pady=5)
+            
+            # Store the entry widget in a dictionary for later access
+            self.entries[label.lower()] = entry
 
-            entry.grid(row=i+4, column=1, padx=5, pady=5)
-            self.entries[key] = entry
-
-        tk.Button(self, text="Create User", font=('Arial', 14),
-                  command=self.create_user).grid(row=len(labels)+5, column=0, columnspan=2, pady=20)
+            # Add Button
+            tk.Button(self, text="Create User", font=('Arial', 14), command=self.create_user).grid(row=8, column=0, columnspan=2, pady=20)
 
     def create_user(self):
         from db_queries.add_user import add_user
-        
+
         try:
-            user_type = int(self.entries['user_type'].get())
+            user_type = int(self.entries['user type'].get())
             if user_type not in [1, 2, 3]:
                 raise ValueError("User type must be 1, 2, or 3.")
         except ValueError as e:
@@ -1065,9 +842,10 @@ class CreateNewUser(BasePage):
             self.entries['password'].get(),
             self.entries['forename'].get(),
             self.entries['surname'].get(),
-            user_type,
-            self.entries['cinema_id'].get()
+            user_type 
         )
+
+
 
 if __name__ == "__main__":
     app = CinemaBookingApp()
