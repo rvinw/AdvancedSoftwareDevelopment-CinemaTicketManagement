@@ -805,7 +805,7 @@ class CreateNewUser(BasePage):
         
         tk.Label(self, text="Add New User", font=('Arial', 18), bg='#add8e6').grid(row=3, column=0, columnspan=4, pady=20)
 
-        labels = ["Username", "Forename", "Surname", "User Type", "Password"]
+        labels = ["Username", "Forename", "Surname", "User Type", "Password", "cinemaID"]
         self.entries = {}
 
         for i, label in enumerate(labels):
@@ -821,6 +821,8 @@ class CreateNewUser(BasePage):
                 # Create Entry fields for other labels
                 entry = ttk.Entry(self, font=('Arial', 14), width=30, show='*' if label == "Password" else '')
                 entry.grid(row=i+2, column=1, padx=5, pady=5)
+                
+            
             
             # Store the entry widget in a dictionary for later access
             self.entries[label.lower()] = entry
@@ -844,7 +846,8 @@ class CreateNewUser(BasePage):
             self.entries['password'].get(),
             self.entries['forename'].get(),
             self.entries['surname'].get(),
-            user_type 
+            user_type,
+            self.entries['cinemaID'].get()
         )
 
 
