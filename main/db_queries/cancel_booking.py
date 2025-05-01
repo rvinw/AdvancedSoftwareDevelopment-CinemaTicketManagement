@@ -28,7 +28,7 @@ def cancel_booking(bookingID):
 
         showID, price = booking
 
-        # Get showDateTime from 'show' table
+        #Get showDateTime from 'show' table
         cur.execute("SELECT showDateTime FROM show WHERE showID = ?", (showID,))
         show_row = cur.fetchone()
         if not show_row:
@@ -36,7 +36,6 @@ def cancel_booking(bookingID):
             conn.close()
             return
 
-        # Parse show date and time (assuming format 'YYYY-MM-DD HH:MM')
         show_datetime = datetime.strptime(show_row[0], "%Y-%m-%d %H:%M")
         now = datetime.now()
 
@@ -46,10 +45,9 @@ def cancel_booking(bookingID):
             conn.close()
             return
 
-        # Apply 50% refund if cancelled at least one day before
         refund_amount = price * 0.5
 
-        # Mark as cancelled
+    #Mark as cancelled
         cur.execute("UPDATE booking SET cancelled = 1 WHERE bookingID = ?", (bookingID,))
         conn.commit()
         conn.close()
