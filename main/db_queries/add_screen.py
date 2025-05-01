@@ -1,3 +1,5 @@
+# Written By Arvin Valad Khani (23035803)
+
 import sqlite3
 
 def add_screen(cinemaID, screen_name, capacity):
