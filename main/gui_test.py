@@ -1,6 +1,7 @@
 from tkinter import ttk
 import tkinter as tk
 import datetime
+from tkinter import simpledialog
 import tkinter.messagebox as messagebox
 from tkcalendar import DateEntry
 from datetime import date, timedelta
@@ -619,8 +620,143 @@ class ReportsPage(BasePage):
         tk.Label(header_frame, text="Reports page", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
         tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
- 
 
+        button_frame = tk.Frame(self)
+        button_frame.grid(row=2, column=0, pady=20, padx=10)
+
+        reports = [
+            ("Bookings per Listing", self.report_bookings_per_listing),
+            ("Monthly Revenue per Cinema", self.report_monthly_revenue_per_cinema),
+            ("Top Revenue Generating Film", self.report_top_revenue_film),
+            ("Monthly Staff Bookings (Sorted)", self.report_monthly_staff_bookings),
+        ]
+
+        for i, (label, command) in enumerate(reports):
+            tk.Button(button_frame, text=label, font=('Arial', 12), width=30, command=command).grid(row=i, column=0, pady=5)
+
+    def get_month_year_input(self):
+        month = simpledialog.askinteger("Input", "Enter month (1-12):")
+        year = simpledialog.askinteger("Input", "Enter year (e.g., 2025):")
+        if not (month and year):
+            return None, None
+        return f"{year}-{month:02d}", year  # formatted month-year string for SQL
+    
+    def report_bookings_per_listing(self):
+        con = sqlite3.connect("HorizonCinema.db")
+        cur = con.cursor()
+
+        cur.execute('''
+            SELECT show.showID, movie.title, COUNT(*) AS num_bookings
+            FROM booking
+            JOIN show ON booking.showID = show.showID
+            JOIN movie ON show.movieID = movie.movieID
+            WHERE cancelled = 0
+            GROUP BY show.showID
+            ORDER BY num_bookings DESC
+        ''')
+        rows = cur.fetchall()
+        con.close()
+
+        self.display_report_window("Bookings per Listing", rows, ["Show ID", "Movie Title", "Bookings"])
+
+    def report_monthly_revenue_per_cinema(self):
+        month_year, _ = self.get_month_year_input()
+        if not month_year:
+            return
+
+        con = sqlite3.connect("HorizonCinema.db")
+        cur = con.cursor()
+
+        cur.execute('''
+            SELECT cinema.cinemaName, 
+                strftime('%Y-%m', show.showDateTime) AS month, 
+                SUM(booking.price) AS revenue
+            FROM booking
+            JOIN show ON booking.showID = show.showID
+            JOIN screen ON show.screenID = screen.screenID
+            JOIN cinema ON screen.cinemaID = cinema.cinemaID
+            WHERE cancelled = 0
+            AND strftime('%Y-%m', show.showDateTime) = ?
+            GROUP BY cinema.cinemaName
+            ORDER BY revenue DESC
+        ''', (month_year,))
+        rows = cur.fetchall()
+        con.close()
+
+        self.display_report_window(f"Revenue for {month_year}", rows, ["Cinema", "Month", "Revenue (£)"])
+
+    def report_top_revenue_film(self):
+        con = sqlite3.connect("HorizonCinema.db")
+        cur = con.cursor()
+
+        cur.execute('''
+            SELECT movie.title, SUM(booking.price) AS total_revenue
+            FROM booking
+            JOIN show ON booking.showID = show.showID
+            JOIN movie ON show.movieID = movie.movieID
+            WHERE cancelled = 0
+            GROUP BY movie.title
+            ORDER BY total_revenue DESC
+            LIMIT 1
+        ''')
+        rows = cur.fetchall()
+        con.close()
+
+        self.display_report_window("Top Revenue Generating Film", rows, ["Movie Title", "Total Revenue (£)"])
+
+    def report_monthly_staff_bookings(self):
+        month_year, _ = self.get_month_year_input()
+        if not month_year:
+            return
+
+        con = sqlite3.connect("HorizonCinema.db")
+        cur = con.cursor()
+
+        try:
+            cur.execute('''
+                SELECT s.userForename || ' ' || s.userSurname AS staff_name,
+                    strftime('%Y-%m', sh.showDateTime) AS month,
+                    COUNT(*) AS bookings
+                FROM booking b
+                JOIN show sh ON b.showID = sh.showID
+                JOIN staff s ON b.staffID = s.userID
+                WHERE b.cancelled = 0
+                AND strftime('%Y-%m', sh.showDateTime) = ?
+                GROUP BY staff_name
+                ORDER BY bookings DESC
+            ''', (month_year,))
+            rows = cur.fetchall()
+        except sqlite3.OperationalError:
+            rows = [("Missing staffID in booking table", "", "")]
+
+        con.close()
+        self.display_report_window(f"Staff Bookings for {month_year}", rows, ["Staff Name", "Month", "Bookings"])
+
+    def display_report_window(self, title, rows, headers):
+        window = tk.Toplevel(self)
+        window.title(title)
+        window.geometry("700x400")
+
+        canvas = tk.Canvas(window)
+        scrollbar = tk.Scrollbar(window, orient="vertical", command=canvas.yview)
+        scroll_frame = tk.Frame(canvas)
+
+        scroll_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.create_window((0, 0), window=scroll_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        # Headers
+        for col, header in enumerate(headers):
+            tk.Label(scroll_frame, text=header, font=('Arial', 12, 'bold'), borderwidth=2, relief='groove').grid(row=0, column=col, sticky='nsew', padx=2, pady=2)
+
+        # Rows
+        for row_idx, row in enumerate(rows, start=1):
+            for col_idx, val in enumerate(row):
+                tk.Label(scroll_frame, text=str(val), font=('Arial', 11), borderwidth=1, relief='ridge').grid(row=row_idx, column=col_idx, sticky='nsew', padx=1, pady=1)
+    
 class ManageScreeningPage(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
