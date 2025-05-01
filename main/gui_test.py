@@ -792,9 +792,17 @@ class MainMenuPage(BasePage):
 
         self.admin_widgets.extend([screening_btn, settings_btn, reports_btn, user_btn])
 
+import tkinter as tk
+from tkinter import ttk, messagebox
+from tkcalendar import DateEntry
+from datetime import date, timedelta
+from db_queries.add_user import add_user  # ensure this import works
+
 class CreateNewUser(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
+        self.controller = controller
+        self.entries = {}
 
         header_frame = tk.Frame(self, bg='#add8e6')
         header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
@@ -802,39 +810,29 @@ class CreateNewUser(BasePage):
         tk.Label(header_frame, text="Listing setting", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
         tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
-        
+
         tk.Label(self, text="Add New User", font=('Arial', 18), bg='#add8e6').grid(row=3, column=0, columnspan=4, pady=20)
 
-        labels = ["Username", "Forename", "Surname", "User Type", "Password", "cinemaID"]
-        self.entries = {}
+        labels = ["Username", "Forename", "Surname", "User Type", "Password", "Cinema ID"]
+        keys = ["username", "forename", "surname", "user_type", "password", "cinema_id"]
 
-        for i, label in enumerate(labels):
-            # Create labels for each field
-            tk.Label(self, text=label + ":", font=('Arial', 14)).grid(row=i+2, column=0, sticky='e', padx=10, pady=5)
-            
-            # Special handling for the "User Type" field to use Combobox instead of Entry
+        for i, (label, key) in enumerate(zip(labels, keys)):
+            tk.Label(self, text=label + ":", font=('Arial', 14)).grid(row=i+4, column=0, sticky='e', padx=10, pady=5)
+
             if label == "User Type":
-                # Create a Combobox for User Type with restricted values
                 entry = ttk.Combobox(self, font=('Arial', 14), width=30, values=[1, 2, 3], state="readonly")
-                entry.grid(row=i+2, column=1, padx=5, pady=5)
             else:
-                # Create Entry fields for other labels
                 entry = ttk.Entry(self, font=('Arial', 14), width=30, show='*' if label == "Password" else '')
-                entry.grid(row=i+2, column=1, padx=5, pady=5)
-                
-            
-            
-            # Store the entry widget in a dictionary for later access
-            self.entries[label.lower()] = entry
 
-            # Add Button
-            tk.Button(self, text="Create User", font=('Arial', 14), command=self.create_user).grid(row=8, column=0, columnspan=2, pady=20)
+            entry.grid(row=i+4, column=1, padx=5, pady=5)
+            self.entries[key] = entry
+
+        tk.Button(self, text="Create User", font=('Arial', 14),
+                  command=self.create_user).grid(row=len(labels)+5, column=0, columnspan=2, pady=20)
 
     def create_user(self):
-        from db_queries.add_user import add_user
-
         try:
-            user_type = int(self.entries['user type'].get())
+            user_type = int(self.entries['user_type'].get())
             if user_type not in [1, 2, 3]:
                 raise ValueError("User type must be 1, 2, or 3.")
         except ValueError as e:
@@ -847,8 +845,9 @@ class CreateNewUser(BasePage):
             self.entries['forename'].get(),
             self.entries['surname'].get(),
             user_type,
-            self.entries['cinemaID'].get()
+            self.entries['cinema_id'].get()
         )
+
 
 
 
