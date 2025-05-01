@@ -10,7 +10,9 @@ CREATE TABLE IF NOT EXISTS staff (
     userForename TEXT NOT NULL,
     userSurname TEXT NOT NULL,
     userType INTEGER NOT NULL CHECK(userType IN (1, 2, 3)),
-    userPassword TEXT NOT NULL
+    userPassword TEXT NOT NULL,
+    cinemaID INTEGER,
+    FOREIGN KEY (cinemaID) REFERENCES cinema(cinemaID)
 )
 ''')
 
