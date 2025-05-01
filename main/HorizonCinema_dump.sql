@@ -4420,6 +4420,10 @@ INSERT INTO booking VALUES(13,1,3,5.0,2,0);
 INSERT INTO booking VALUES(14,1,17,5.0,2,0);
 INSERT INTO booking VALUES(15,1,27,6.0,2,0);
 INSERT INTO booking VALUES(16,1,7,5.0,2,0);
+INSERT INTO booking VALUES(17,1,34,6.0,2,0);
+INSERT INTO booking VALUES(18,1,35,6.0,2,0);
+INSERT INTO booking VALUES(19,3,14,6.0,2,1);
+INSERT INTO booking VALUES(20,3,15,6.0,2,0);
 CREATE TABLE staff (
     userID INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
@@ -4433,6 +4437,7 @@ CREATE TABLE staff (
 INSERT INTO staff VALUES(1,'BookingStaff','Vincent','Richardson-Price',1,'staffpass123',1);
 INSERT INTO staff VALUES(2,'Manager','Jake','Richardson-Price',2,'manpass123',2);
 INSERT INTO staff VALUES(3,'Admin','Alex','Nakhle',3,'adminpass123',3);
+INSERT INTO staff VALUES(4,'test','test','test',3,'test',2);
 DELETE FROM sqlite_sequence;
 INSERT INTO sqlite_sequence VALUES('city',6);
 INSERT INTO sqlite_sequence VALUES('movie',20);
