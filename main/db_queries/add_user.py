@@ -1,4 +1,4 @@
-# Written By Arvin Valad Khani (23035803)
+# Written By Arvin Valad Khani (23035803) and Jake Richarson-Price (23038539)
 
 import sqlite3
 from tkinter import messagebox

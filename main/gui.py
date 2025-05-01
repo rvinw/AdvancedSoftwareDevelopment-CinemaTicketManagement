@@ -1,4 +1,4 @@
-# Written By Alex Nakhle (23036544), Jake Richarson-Price (23038539), and Arvin Valad Khani (23035803)
+# Written By Alex Nakhle (23036544), Jake Richarson-Price (23038539), Vincent Richardson-Price (23079144), and Arvin Valad Khani (23035803)
 
 from tkinter import ttk
 import tkinter as tk

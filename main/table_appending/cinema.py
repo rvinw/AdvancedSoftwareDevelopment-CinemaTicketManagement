@@ -1,5 +1,4 @@
-# 23035803
-# Written By Arvin Valad Khani
+# Written By Arvin Valad Khani (23035803)
 
 import sqlite3
 import random
