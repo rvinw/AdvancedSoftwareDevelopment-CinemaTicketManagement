@@ -163,7 +163,7 @@ class BookingPage(BasePage):
         header_frame = tk.Frame(self, bg='#add8e6')
         header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
 
-        tk.Label(header_frame, text="Listing setting", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Label(header_frame, text="Book a ticket", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
         tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
 
@@ -369,7 +369,7 @@ class CancelPage(BasePage):
         header_frame = tk.Frame(self, bg='#add8e6')
         header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
 
-        tk.Label(header_frame, text="Film Listings", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Label(header_frame, text="Cancel a Ticket", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
         tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
 
@@ -865,7 +865,7 @@ class MainMenuPage(BasePage):
         # Connecting admin buttons to their respective pages
         screening_btn = tk.Button(self, text="Manage Screening", font=('Arial', 14),
                                   command=lambda: self.controller.show_frame("ManageScreeningPage"))
-        settings_btn = tk.Button(self, text="Listing Settings", font=('Arial', 14),
+        settings_btn = tk.Button(self, text="Screen Settings", font=('Arial', 14),
                                  command=lambda: self.controller.show_frame("ScreeningSettingsPage"))
         reports_btn = tk.Button(self, text="Reports", font=('Arial', 14),
                                 command=lambda: self.controller.show_frame("ReportsPage"))
@@ -883,13 +883,14 @@ class MainMenuPage(BasePage):
 class CreateNewUser(BasePage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
+        from db_queries.add_user import add_user
         self.controller = controller
         self.entries = {}
 
         header_frame = tk.Frame(self, bg='#add8e6')
         header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
 
-        tk.Label(header_frame, text="Listing setting", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
+        tk.Label(header_frame, text="Create a User", font=('Arial', 18), bg='#add8e6').pack(side='left', padx=10)
         tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
 
@@ -913,6 +914,8 @@ class CreateNewUser(BasePage):
                   command=self.create_user).grid(row=len(labels)+5, column=0, columnspan=2, pady=20)
 
     def create_user(self):
+        from db_queries.add_user import add_user
+        
         try:
             user_type = int(self.entries['user_type'].get())
             if user_type not in [1, 2, 3]:
