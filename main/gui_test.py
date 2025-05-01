@@ -158,7 +158,7 @@ class BookingPage(BasePage):
         self.seat_buttons = {}
         self.seat_matrix = []
         self.seat_frame = None
-        
+
         header_frame = tk.Frame(self, bg='#add8e6')
         header_frame.grid(row=1, column=0, columnspan=10, sticky='nsew', padx=10, pady=10)
 
@@ -206,6 +206,11 @@ class BookingPage(BasePage):
 
         for r, row in enumerate(self.seat_matrix):
             for c, (seatID, seatType, available) in enumerate(row):
+                try:
+                    numeric_seat_id = seatID  
+                except ValueError:
+                    continue  
+
                 color = self.get_seat_color(seatType) if available else "gray"
                 state = "normal" if available else "disabled"
 
@@ -215,10 +220,10 @@ class BookingPage(BasePage):
                     width=4,
                     bg=color,
                     state=state,
-                    command=lambda sid=seatID, st=seatType: self.toggle_seat_selection(sid, st)
+                    command=lambda sid=numeric_seat_id, st=seatType: self.toggle_seat_selection(sid, st)
                 )
                 btn.grid(row=r, column=c, padx=2, pady=2)
-                self.seat_buttons[seatID] = (btn, seatType)
+                self.seat_buttons[numeric_seat_id] = (btn, seatType)
 
         self.create_color_legend()
 
@@ -263,12 +268,11 @@ class BookingPage(BasePage):
                 messagebox.showwarning("No Seats", "Please select at least one seat.")
                 return
 
-            staff_id = self.controller.user_type  # Using user_type as staff ID
+            staff_id = self.controller.user_type
             seat_ids = list(self.selected_seats)
 
             add_booking(show_id, seat_ids, staff_id)
 
-            # Refresh seat view
             self.seat_matrix = get_seat_matrix(show_id)
             self.create_seat_selector()
             self.selected_seats.clear()
@@ -279,8 +283,6 @@ class BookingPage(BasePage):
             messagebox.showerror("Error", "Invalid Show ID.")
         except Exception as e:
             messagebox.showerror("Error", f"Booking failed:\n{e}")
-
-
             
 class ListingsPage(BasePage):
     def __init__(self, parent, controller):
