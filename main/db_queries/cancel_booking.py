@@ -1,8 +1,11 @@
+# Written By Arvin Valad Khani (23035803)
+
 import sqlite3
 from tkinter import messagebox
 
 
 def get_booking_info(bookingID):
+    
     try:
         conn = sqlite3.connect("HorizonCinema.db")
         cur = conn.cursor()

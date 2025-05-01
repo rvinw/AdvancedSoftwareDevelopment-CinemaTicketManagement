@@ -1,41 +1,5 @@
-'''import sqlite3
+# Written By Arvin Valad Khani (23035803)
 
-def add_seat(seatID, seatType, screenID):
-    con = sqlite3.connect("HorizonCinema.db")
-    cur = con.cursor()'''
-
-    #cur.execute('''
-    #INSERT INTO seat (screenID, seatType, screenID)
-    #VALUES (?, ?)
-    #''', (seatID, seatType, screenID))
-
-    #con.commit()
-    #con.close()
-
-'''cinemaID = 1
-    
-for i in range (60):
-    pass
-
-for i in range (70):
-    pass
-
-for i in range (85):
-    pass
-
-for i in range (95):
-    pass
-
-for i in range (105):
-    pass
-
-for i in range (120):
-    pass'''
-
-
-
-
-#add_seat(seatID, seatType, screenID)
 
 import sqlite3
 import math

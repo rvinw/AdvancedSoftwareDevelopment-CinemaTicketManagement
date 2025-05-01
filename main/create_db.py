@@ -1,3 +1,6 @@
+# 23035803
+# Written By Arvin Valad Khani
+
 import sqlite3
 
 con = sqlite3.connect("HorizonCinema.db")
