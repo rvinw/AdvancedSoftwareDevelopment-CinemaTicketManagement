@@ -669,7 +669,7 @@ class ManageScreeningPage(BasePage):
         try:
             con = sqlite3.connect("HorizonCinema.db")
             cur = con.cursor()
-            cur.execute("SELECT movieID, movieTitle FROM movie")
+            cur.execute("SELECT movieID, title FROM movie")
             movies = cur.fetchall()
             con.close()
             return movies
@@ -678,7 +678,18 @@ class ManageScreeningPage(BasePage):
             return []
 
     def add_screening(self):
-        from db_queries.add_show import add_show
+        from db_queries.add_show import add_show, validate_datetime
+
+        def get_screen_id(cinema_id, screen_number):
+            con = sqlite3.connect("HorizonCinema.db")
+            cur = con.cursor()
+            cur.execute('''
+                SELECT screenID FROM screen
+                WHERE cinemaID = ? AND screenName = ?
+            ''', (cinema_id, screen_number))
+            result = cur.fetchone()
+            con.close()
+            return result[0] if result else None
 
         try:
             cinema_id = int(self.cinema_id_entry.get().strip())
@@ -698,16 +709,16 @@ class ManageScreeningPage(BasePage):
                 return
 
             show_time = self.timeslot_mapping[timeslot]
-            show_datetime = f"{date_obj.strftime('%Y-%m-%d')} {show_time}"
+            show_datetime = f"{date_obj.strftime('%Y-%m-%d')} {show_time[:5]}"
 
-            success, msg = add_show(movie_id, screen_id, show_datetime)
-            if success:
-                messagebox.showinfo("Success", msg)
-            else:
-                messagebox.showerror("Error", msg)
+            add_show(movie_id, show_datetime, screen_id)
+
+            messagebox.showinfo("Success", "Screening added.")
 
         except ValueError:
             messagebox.showerror("Input Error", "Please fill in all fields correctly.")
+
+
                   
 class ScreeningSettingsPage(BasePage):
     def __init__(self, parent, controller):
