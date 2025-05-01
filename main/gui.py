@@ -1,4 +1,4 @@
-# Written By Alex Nakhle (23036544), Jake Richarson-Price, and Arvin Valad Khani (23035803)
+# Written By Alex Nakhle (23036544), Jake Richarson-Price (23038539), and Arvin Valad Khani (23035803)
 
 from tkinter import ttk
 import tkinter as tk
@@ -8,7 +8,6 @@ import tkinter.messagebox as messagebox
 from tkcalendar import DateEntry
 from datetime import date, timedelta
 import sqlite3
-
 
 class CinemaBookingApp(tk.Tk):
     def __init__(self):
@@ -36,7 +35,6 @@ class CinemaBookingApp(tk.Tk):
         frame.tkraise()
         if hasattr(frame, "update_header"):
             frame.update_header()
-
 
 class BasePage(tk.Frame):
     def __init__(self, parent, controller):
@@ -76,7 +74,6 @@ class BasePage(tk.Frame):
     def logout(self):
         self.controller.logged_in_user = "Guest"
         self.controller.show_frame("LoginPage")
-
 
 class LoginPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -151,7 +148,6 @@ class LoginPage(tk.Frame):
             self.controller.show_frame("MainMenuPage")
         else:
             messagebox.showerror("Login Failed", "Invalid username or password.")
-
 
 class BookingPage(BasePage):
     def __init__(self, parent, controller):
@@ -363,8 +359,7 @@ class ListingsPage(BasePage):
             tk.Label(frame, text=f"Rating: {movie['rating']} | Age: {movie['age']} | Runtime: {movie['runTime']}", font=('Arial', 10), bg='white').pack(anchor='w', pady=(2, 0))
             tk.Label(frame, text=f"Synopsis: {movie['description']}", font=('Arial', 10), wraplength=640, justify='left', bg='white').pack(anchor='w', pady=(4, 0))
 
-            row_index += 1
-        
+            row_index += 1       
 
 class CancelPage(BasePage):
     def __init__(self, parent, controller):
@@ -445,8 +440,7 @@ class CancelPage(BasePage):
         if success:
             messagebox.showinfo("Success", msg)
         else:
-            messagebox.showerror("Failed", msg)
-            
+            messagebox.showerror("Failed", msg)           
         
 class AddCityPage(BasePage):
     def __init__(self, parent, controller):
@@ -480,7 +474,6 @@ class AddCityPage(BasePage):
                 self.new_city_name.delete(0, tk.END)
                 self.new_base_price.delete(0, tk.END)
                 self.controller.show_frame("MainMenuPage")
-
         
 class AddCinemaPage(BasePage):
     def __init__(self, parent, controller):
@@ -519,7 +512,6 @@ class AddCinemaPage(BasePage):
         add_cinema(cinema_name, num_screens, city_name)
         
         self.controller.show_frame("MainMenuPage")
-
 
 class AddMoviePage(BasePage):
     def __init__(self, parent, controller):
@@ -612,7 +604,6 @@ class AddMoviePage(BasePage):
                 entry.delete(0, tk.END)
         except Exception as e:
             self.status_label.config(text=f"Error: {str(e)}", fg='red')
-
 
 class ReportsPage(BasePage):
     def __init__(self, parent, controller):
@@ -857,8 +848,6 @@ class ManageScreeningPage(BasePage):
 
         except ValueError:
             messagebox.showerror("Input Error", "Please fill in all fields correctly.")
-
-
                   
 class ScreeningSettingsPage(BasePage):
     def __init__(self, parent, controller):
