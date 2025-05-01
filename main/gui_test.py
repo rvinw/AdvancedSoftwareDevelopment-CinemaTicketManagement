@@ -301,11 +301,10 @@ class ListingsPage(BasePage):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
-        # Canvas (where the content will be placed)
+        # Canvas where movies are placed
         canvas = tk.Canvas(container, bg='#add8e6', highlightthickness=0)
         canvas.grid(row=0, column=0, sticky='nsew')
 
-        # Scrollbar (right side, fixed width)
         scrollbar = tk.Scrollbar(container, orient='vertical', command=canvas.yview)
         scrollbar.grid(row=0, column=1, sticky='ns')  # This places the scrollbar in column 1
 
@@ -370,12 +369,11 @@ class CancelPage(BasePage):
         tk.Button(header_frame, text="Main Menu", font=('Arial', 12),
                   command=lambda: controller.show_frame("MainMenuPage")).pack(side='right', padx=10)
 
-        # Booking ID
         tk.Label(self, text="Enter Booking ID:", font=('Arial', 14)).grid(row=2, column=2, sticky="e", padx=(10, 5), pady=10)
         self.booking_id_entry = tk.Entry(self, font=('Arial', 14))
         self.booking_id_entry.grid(row=2, column=3, sticky="ew", padx=(5, 5), pady=10)
 
-        # Search button
+        #Search for booking button
         tk.Button(self, text="Search", font=('Arial', 14), command=self.search_booking).grid(
             row=2, column=4, sticky="w", padx=(5, 10), pady=10
         )
@@ -389,7 +387,7 @@ class CancelPage(BasePage):
             row=4, column=3, columnspan=1, sticky="nsew", padx=(5, 10), pady=15
         )
 
-        # Uncancel Booking Button
+        #Uncancel Booking Button
         tk.Button(self, text="Uncancel Booking", font=('Arial', 14), command=self.handle_uncancel).grid(
             row=5, column=3,columnspan=1,sticky="nsew", padx=(5, 10), pady=15
         )

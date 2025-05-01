@@ -41,7 +41,7 @@ def add_booking(showID, seatIDs, staffID):
             raise ValueError("Invalid showID")
         screenID = screen_row[0]
 
-        # Get cinemaID
+        #Get cinemaID
         cur.execute("SELECT cinemaID FROM screen WHERE screenID = ?", (screenID,))
         cinema_row = cur.fetchone()
         if not cinema_row:
