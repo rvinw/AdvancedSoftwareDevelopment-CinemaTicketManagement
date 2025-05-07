@@ -17,7 +17,7 @@ def add_cinema(cinema_name, number_of_screens, city_name):
 
         cur.execute('''
             INSERT INTO cinema (cinemaName, numberOfScreens, cityID)
-            VALUES (?, ?)
+            VALUES (?, ?, ?)
         ''', (cinema_name, number_of_screens, city_id))
 
         con.commit()
